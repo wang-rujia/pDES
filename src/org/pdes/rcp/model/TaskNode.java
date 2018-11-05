@@ -28,6 +28,9 @@
  */
 package org.pdes.rcp.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.pdes.rcp.model.base.NodeElement;
 
 /**
@@ -44,6 +47,18 @@ public class TaskNode extends NodeElement {
 	private double progress;
 	private int additionalWorkAmount; //Additional work amount if the amount of error exceeds the limit.
 	private boolean needFacility; //Need facility or not
+	
+	private List<Integer> om = new ArrayList<Integer>();
+	private List<Double> minimumWorkAmount = new ArrayList<Double>();
+	
+	private List<Integer> od = new ArrayList<Integer>();
+	private List<Integer> delayWorkAmount = new ArrayList<Integer>();
+	private List<Double> delayPossibility = new ArrayList<Double>();
+	
+	private List<Integer> or = new ArrayList<Integer>();
+	private List<Double> reworkProgress = new ArrayList<Double>();
+	private List<String> reworkFrom = new ArrayList<String>();
+	private List<Double> reworkPossibility = new ArrayList<Double>();
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	/**
@@ -148,5 +163,25 @@ public class TaskNode extends NodeElement {
 		this.needFacility = needFacility;
 		firePropertyChange("needFacility", old, needFacility);
 	}
+	
+	public void addMinimumWorkAmount(int o,double mwa){
+		for(int i=0;i<om.size();i++){
+			if(om.get(i)==o){
+				minimumWorkAmount.set(i, mwa);
+				return;
+			}
+		}
+		om.add(o);
+		minimumWorkAmount.add(mwa);
+	}
+	
+	public List<Integer> getMinimumWorkAmountOList(){
+		return this.om;
+	}
+	
+	public List<Double> getMinimumWorkAmountList(){
+		return this.minimumWorkAmount;
+	}
+	
 	
 }

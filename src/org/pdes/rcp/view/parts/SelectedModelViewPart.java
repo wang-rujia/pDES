@@ -118,6 +118,9 @@ public class SelectedModelViewPart extends ViewPart {
 	private Text taskNameText, taskWorkAmountText, taskAdditionalWorkAmountText, taskProgressText;
 	@SuppressWarnings("unused")
 	private Button taskNeedFacilityCheckBox;
+	private Label minimumWorkAmountTableLabel;
+	private Table minimumWorkAmountTable;
+	private Button addMinimumWorkAmountButton;
 	
 	/**
 	 * Set visible mode of each attributes of model.
@@ -126,20 +129,24 @@ public class SelectedModelViewPart extends ViewPart {
 	private void setVisibleOfTaskSWT(boolean visible){
 		taskNameLabel.setVisible(visible);
 		taskNameText.setVisible(visible);
-		taskWorkAmountLabel.setVisible(visible);
-		taskWorkAmountText.setVisible(visible);
-		taskProgressLabel.setVisible(visible);
-		taskProgressText.setVisible(visible);
+//		taskWorkAmountLabel.setVisible(visible);
+//		taskWorkAmountText.setVisible(visible);
+//		taskProgressLabel.setVisible(visible);
+//		taskProgressText.setVisible(visible);
 //		taskAdditionalWorkAmountLabel.setVisible(visible);
 //		taskAdditionalWorkAmountText.setVisible(visible);
 //		taskNeedFacilityCheckBox.setVisible(visible);
-		
+		minimumWorkAmountTableLabel.setVisible(visible);
+		minimumWorkAmountTable.setVisible(visible);
+		addMinimumWorkAmountButton.setVisible(visible);
+
 		if(visible){
 			taskNameText.setText(((TaskNode) selectedModel).getName());
-			taskWorkAmountText.setText(String.valueOf(((TaskNode) selectedModel).getWorkAmount()));
-			taskProgressText.setText(String.valueOf(((TaskNode) selectedModel).getProgress()));
+//			taskWorkAmountText.setText(String.valueOf(((TaskNode) selectedModel).getWorkAmount()));
+//			taskProgressText.setText(String.valueOf(((TaskNode) selectedModel).getProgress()));
 //			taskAdditionalWorkAmountText.setText(String.valueOf(((TaskNode)selectedModel).getAdditionalWorkAmount()));
 //			taskNeedFacilityCheckBox.setSelection(((TaskNode)selectedModel).isNeedFacility());
+			this.redrawAllTableForTask();
 		}
 	}
 	
@@ -647,85 +654,85 @@ public class SelectedModelViewPart extends ViewPart {
 		taskNameTextFD.right = new FormAttachment(95);
 		taskNameText.setLayoutData(taskNameTextFD);
 		
-		taskWorkAmountLabel = new Label(parent, SWT.NULL);
-		taskWorkAmountLabel.setText("Default workload : ");
-		taskWorkAmountLabel.setFont(new Font(null, "", 10, 0));
-		FormData taskWorkAmountLabelFD = new FormData();
-		taskWorkAmountLabelFD.top= new FormAttachment(taskNameLabel,10);
-		taskWorkAmountLabelFD.left= new FormAttachment(0,10);
-		taskWorkAmountLabel.setLayoutData(taskWorkAmountLabelFD);
+//		taskWorkAmountLabel = new Label(parent, SWT.NULL);
+//		taskWorkAmountLabel.setText("Default workload : ");
+//		taskWorkAmountLabel.setFont(new Font(null, "", 10, 0));
+//		FormData taskWorkAmountLabelFD = new FormData();
+//		taskWorkAmountLabelFD.top= new FormAttachment(taskNameLabel,10);
+//		taskWorkAmountLabelFD.left= new FormAttachment(0,10);
+//		taskWorkAmountLabel.setLayoutData(taskWorkAmountLabelFD);
 		
-		taskWorkAmountText = new Text(parent, SWT.BORDER|SWT.SINGLE);
-		taskWorkAmountText.addKeyListener(new KeyListener(){
+//		taskWorkAmountText = new Text(parent, SWT.BORDER|SWT.SINGLE);
+//		taskWorkAmountText.addKeyListener(new KeyListener(){
 
-			/*
-			 * (non-Javadoc)
-			 * @see org.eclipse.draw2d.KeyListener#keyPressed(org.eclipse.draw2d.KeyEvent)
-			 */
-			@Override
-			public void keyPressed(KeyEvent e) {}
+//			/*
+//			 * (non-Javadoc)
+//			 * @see org.eclipse.draw2d.KeyListener#keyPressed(org.eclipse.draw2d.KeyEvent)
+//			 */
+//			@Override
+//			public void keyPressed(KeyEvent e) {}
 
-			/*
-			 * (non-Javadoc)
-			 * @see org.eclipse.draw2d.KeyListener#keyReleased(org.eclipse.draw2d.KeyEvent)
-			 */
-			@Override
-			public void keyReleased(KeyEvent e) {
-				if(e.character==SWT.CR){
-					String textString = taskWorkAmountText.getText();
-					if(intCheck(textString)) {
-						((TaskNode)selectedModel).setWorkAmount(Integer.parseInt(textString));
-					}else{
-						taskWorkAmountText.setText(String.valueOf(((TaskNode)selectedModel).getWorkAmount()));
-					}
-				}
-			}
-		});
-		FormData taskWorkAmountTextFD = new FormData();
-		taskWorkAmountTextFD.top= new FormAttachment(taskNameLabel,10);
-		taskWorkAmountTextFD.left= new FormAttachment(taskWorkAmountLabel,10);
-		taskWorkAmountTextFD.width = 50;
-		taskWorkAmountText.setLayoutData(taskWorkAmountTextFD);
+//			/*
+//			 * (non-Javadoc)
+//			 * @see org.eclipse.draw2d.KeyListener#keyReleased(org.eclipse.draw2d.KeyEvent)
+//			 */
+//			@Override
+//			public void keyReleased(KeyEvent e) {
+//				if(e.character==SWT.CR){
+//					String textString = taskWorkAmountText.getText();
+//					if(intCheck(textString)) {
+//						((TaskNode)selectedModel).setWorkAmount(Integer.parseInt(textString));
+//					}else{
+//						taskWorkAmountText.setText(String.valueOf(((TaskNode)selectedModel).getWorkAmount()));
+//					}
+//				}
+//			}
+//		});
+//		FormData taskWorkAmountTextFD = new FormData();
+//		taskWorkAmountTextFD.top= new FormAttachment(taskNameLabel,10);
+//		taskWorkAmountTextFD.left= new FormAttachment(taskWorkAmountLabel,10);
+//		taskWorkAmountTextFD.width = 50;
+//		taskWorkAmountText.setLayoutData(taskWorkAmountTextFD);
 		
-        taskProgressLabel = new Label(parent, SWT.NULL);
-        taskProgressLabel.setText("Progress rate (0.0 - 1.0) : ");
-        taskProgressLabel.setFont(new Font(null, "", 10, 0));
-        FormData taskProgressLabelFD = new FormData();
-        taskProgressLabelFD.top= new FormAttachment(taskWorkAmountLabel,10);
-        taskProgressLabelFD.left= new FormAttachment(0,10);
-        taskProgressLabel.setLayoutData(taskProgressLabelFD);
+//        taskProgressLabel = new Label(parent, SWT.NULL);
+//        taskProgressLabel.setText("Progress rate (0.0 - 1.0) : ");
+//        taskProgressLabel.setFont(new Font(null, "", 10, 0));
+//        FormData taskProgressLabelFD = new FormData();
+//        taskProgressLabelFD.top= new FormAttachment(taskWorkAmountLabel,10);
+//        taskProgressLabelFD.left= new FormAttachment(0,10);
+//        taskProgressLabel.setLayoutData(taskProgressLabelFD);
         
-        taskProgressText = new Text(parent, SWT.BORDER|SWT.SINGLE);
-        taskProgressText.addKeyListener(new KeyListener(){
+//        taskProgressText = new Text(parent, SWT.BORDER|SWT.SINGLE);
+//        taskProgressText.addKeyListener(new KeyListener(){
 
-            /*
-             * (non-Javadoc)
-             * @see org.eclipse.draw2d.KeyListener#keyPressed(org.eclipse.draw2d.KeyEvent)
-             */
-            @Override
-            public void keyPressed(KeyEvent e) {}
+//            /*
+//             * (non-Javadoc)
+//             * @see org.eclipse.draw2d.KeyListener#keyPressed(org.eclipse.draw2d.KeyEvent)
+//             */
+//           @Override
+//            public void keyPressed(KeyEvent e) {}
 
-            /*
-             * (non-Javadoc)
-             * @see org.eclipse.draw2d.KeyListener#keyReleased(org.eclipse.draw2d.KeyEvent)
-             */
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if(e.character==SWT.CR){
-                    String textString = taskProgressText.getText();
-                    if(doubleCheck(textString)) {
-                        ((TaskNode)selectedModel).setProgress(Double.parseDouble(textString));
-                    }else{
-                        taskProgressText.setText(String.valueOf(((TaskNode)selectedModel).getProgress()));
-                    }
-                }
-            }
-        });
-        FormData taskProgressTextFD = new FormData();
-        taskProgressTextFD.top= new FormAttachment(taskWorkAmountLabel,10);
-        taskProgressTextFD.left= new FormAttachment(taskProgressLabel,10);
-        taskProgressTextFD.width = 50;
-        taskProgressText.setLayoutData(taskProgressTextFD);		
+//            /*
+//             * (non-Javadoc)
+//             * @see org.eclipse.draw2d.KeyListener#keyReleased(org.eclipse.draw2d.KeyEvent)
+//             */
+//            @Override
+//            public void keyReleased(KeyEvent e) {
+//                if(e.character==SWT.CR){
+//                    String textString = taskProgressText.getText();
+//                    if(doubleCheck(textString)) {
+//                        ((TaskNode)selectedModel).setProgress(Double.parseDouble(textString));
+//                    }else{
+//                        taskProgressText.setText(String.valueOf(((TaskNode)selectedModel).getProgress()));
+//                    }
+//                }
+//            }
+//        });
+//        FormData taskProgressTextFD = new FormData();
+//        taskProgressTextFD.top= new FormAttachment(taskWorkAmountLabel,10);
+//        taskProgressTextFD.left= new FormAttachment(taskProgressLabel,10);
+//        taskProgressTextFD.width = 50;
+//        taskProgressText.setLayoutData(taskProgressTextFD);		
 		
 //		taskAdditionalWorkAmountLabel = new Label(parent, SWT.NULL);
 //		taskAdditionalWorkAmountLabel.setText("Additional Work Amount : ");
@@ -793,7 +800,48 @@ public class SelectedModelViewPart extends ViewPart {
 //		taskNeedFacilityCheckBoxFD.left = new FormAttachment(0, 10);
 //		taskNeedFacilityCheckBox.setLayoutData(taskNeedFacilityCheckBoxFD);
 		///////////////////////////////////////////////////////////////////////////
+
+        minimumWorkAmountTableLabel = new Label(parent, SWT.NULL);
+        minimumWorkAmountTableLabel.setText("[Minimum Work Amount]occurrence time/work amount");
+        minimumWorkAmountTableLabel.setFont(new Font(null, "", 10, 0));
+		FormData minimumWorkAmountTableLabelFD = new FormData();
+		minimumWorkAmountTableLabelFD.top= new FormAttachment(taskNameLabel,12);
+		minimumWorkAmountTableLabelFD.left= new FormAttachment(0,10);
+		minimumWorkAmountTableLabel.setLayoutData(minimumWorkAmountTableLabelFD);
 		
+		minimumWorkAmountTable = new Table(parent, SWT.MULTI|SWT.BORDER|SWT.FULL_SELECTION);
+		FormData minimumWorkAmountTableFD = new FormData();
+		minimumWorkAmountTableFD.top= new FormAttachment(minimumWorkAmountTableLabel,10);
+		minimumWorkAmountTableFD.left = new FormAttachment(0,20);
+		minimumWorkAmountTableFD.bottom= new FormAttachment(55);
+		minimumWorkAmountTableFD.right = new FormAttachment(95);
+		minimumWorkAmountTable.setLayoutData(minimumWorkAmountTableFD);
+		minimumWorkAmountTable.setLinesVisible(true);
+		minimumWorkAmountTable.setHeaderVisible(true);
+		minimumWorkAmountTable.setEnabled(true);
+		final TableEditor minimumWorkAmountTableEditor = new TableEditor(minimumWorkAmountTable);
+		minimumWorkAmountTableEditor.grabHorizontal = true;
+		
+		addMinimumWorkAmountButton = new Button(parent,SWT.PUSH);
+		addMinimumWorkAmountButton.setText("ADD/REWRITE");
+		addMinimumWorkAmountButton.setEnabled(true);
+		addMinimumWorkAmountButton.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				dialog.setTitleAndMessage("Add/rewrite minimum work amount", "Please input [occurrence time,minimum work amount]");
+				if(dialog.open()==0){
+					String content = dialog.getTextString();
+					String[] a = content.split(",");
+					((TaskNode) selectedModel).addMinimumWorkAmount(Integer.parseInt(a[0]), Double.parseDouble(a[1]));
+					redrawAllTableForTask();
+				}
+			}
+		});
+		FormData addMinimumWorkAmountButtonFD = new FormData();
+		addMinimumWorkAmountButtonFD.top= new FormAttachment(taskNameLabel,9);
+		addMinimumWorkAmountButtonFD.left= new FormAttachment(minimumWorkAmountTableLabel,10);
+		addMinimumWorkAmountButton.setLayoutData(addMinimumWorkAmountButtonFD);
+        
 		///////////////////////Link////////////////////////////
 		linkTypeNameLabel = new Label(parent, SWT.NULL);
 		linkTypeNameLabel.setText("LinkType : ");
@@ -1168,5 +1216,47 @@ public class SelectedModelViewPart extends ViewPart {
 				item.setText(j+2, text);
 			}
 		}
+	}
+	
+	public void redrawAllTableForTask(){
+		redrawMinimumWorkAmountTable();
+		redrawDelayTable();
+		redrawReworkTable();
+	}
+	
+	private void redrawMinimumWorkAmountTable(){
+		//Initialize
+		while ( minimumWorkAmountTable.getColumnCount() > 0 ) {
+			minimumWorkAmountTable.getColumns()[ 0 ].dispose();
+		}
+		while ( minimumWorkAmountTable.getItemCount() > 0 ) {
+			minimumWorkAmountTable.getItems()[ 0 ].dispose();
+		}
+		
+		//Column setting
+		TableColumn column = new TableColumn(minimumWorkAmountTable,SWT.NONE);
+		column.setText("occurrence time");
+		column.setWidth(60);
+		
+		column = new TableColumn(minimumWorkAmountTable,SWT.NONE);
+		column.setText("minimum work amount");
+		column.setWidth(60);
+			
+		//item setting
+		List<Integer> minimumWorkAmountOList = ((TaskNode) selectedModel).getMinimumWorkAmountOList();
+		List<Double> minimumWorkAmountList = ((TaskNode) selectedModel).getMinimumWorkAmountList();
+		for(int i=0;i<minimumWorkAmountOList.size();i++){
+			TableItem item = new TableItem(minimumWorkAmountTable,SWT.NONE);
+			item.setText(0, String.valueOf(minimumWorkAmountOList.get(i)));
+			item.setText(1, String.valueOf(minimumWorkAmountList.get(i)));
+		}
+	}
+	
+	private void redrawDelayTable(){
+		
+	}
+	
+	private void redrawReworkTable(){
+		
 	}
 }
