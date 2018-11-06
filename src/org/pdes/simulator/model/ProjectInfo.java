@@ -28,22 +28,70 @@
  */
 package org.pdes.simulator.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.pdes.rcp.model.ProjectDiagram;
+import org.pdes.rcp.model.TeamNode;
 import org.pdes.simulator.model.base.BaseProjectInfo;
 
-/**
- * @author Takuya Goto <tgoto@s.h.k.u-tokyo.ac.jp>
- *
- */
 public class ProjectInfo extends BaseProjectInfo {
 
-	/**
-	 * @param diagram
-	 * @param workflowCount
-	 */
+	private ProjectDiagram diagram;
+	private List<Workflow> workflowList;
+	private List<Resource> resourceList;
+	
 	public ProjectInfo(ProjectDiagram diagram, int workflowCount) {
-		super(diagram, workflowCount);
-		// TODO Auto-generated constructor stub
+		super(diagram,workflowCount);
+		this.diagram = diagram;
+		this.resourceList = this.getResourceListFromProjectDiagram();
+		this.workflowList = new ArrayList<Workflow>();
+		this.workflowList.add(new Workflow(this.getTaskListConsideringOnlyTaskDependency_child()));
+	}
+	
+	private List<Resource> getResourceListFromProjectDiagram(){
+		List<Resource> resourceList = new ArrayList<Resource>();
+		for(TeamNode t : diagram.getTeamNodeList()){
+			for(int i=0;i<t.getWorkerList().size();i++){
+				resourceList.add(new Resource(t.getWorkerList().get(i)));
+			}
+		}
+		return resourceList;
+	}
+	
+	private List<Task> getTaskListConsideringOnlyTaskDependency_child(){
+		List<Task> taskList = this.diagram.getTaskNodeList().stream()
+				.map(node -> new Task(node))
+				.collect(Collectors.toList());
+		this.diagram.getTaskLinkList().forEach(link -> {
+			Task destinationTask = taskList.stream()
+					.filter(task -> task.getNodeId().equals(link.getDestinationNode().getId()))
+					.findFirst()
+					.get();
+			Task originTask = taskList.stream()
+					.filter(task -> task.getNodeId().equals(link.getOriginNode().getId()))
+					.findFirst()
+					.get();
+			destinationTask.addInputTask(originTask);
+			originTask.addOutputTask(destinationTask);
+		});
+		return taskList;
+	}
+	
+	public List<Workflow> getWorkflowList_child() {
+		return workflowList;
+	}
+	
+	public List<Resource> getResourceList_child() {
+		return resourceList;
+	}
+	
+	public int getDuration(){
+		return workflowList.stream()
+				.mapToInt(w -> w.getDuration())
+				.max()
+				.orElse(0);
 	}
 
 }

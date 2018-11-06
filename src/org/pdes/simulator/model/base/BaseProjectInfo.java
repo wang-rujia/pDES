@@ -37,9 +37,7 @@ import org.pdes.rcp.model.ProjectDiagram;
 import org.pdes.simulator.model.Component;
 import org.pdes.simulator.model.Organization;
 import org.pdes.simulator.model.Product;
-import org.pdes.simulator.model.Task;
 import org.pdes.simulator.model.Team;
-import org.pdes.simulator.model.Workflow;
 
 /**
  * This is the class for collecting Project information.<br>
@@ -70,7 +68,7 @@ public class BaseProjectInfo {
 			List<BaseComponent> componentList = this.getComponentListConsideringOnlyComponentDependency();
 			this.addTargetComponentLinkInformation(componentList, taskList);
 			this.addAllocationLinkInformation(organization, taskList);
-			BaseWorkflow workflow = new Workflow(i,taskList);
+			BaseWorkflow workflow = new BaseWorkflow(i,taskList);
 			BaseProduct product = new Product(i,componentList);
 			this.workflowList.add(workflow);
 			this.productList.add(product);
@@ -96,7 +94,7 @@ public class BaseProjectInfo {
 	 */
 	private List<BaseTask> getTaskListConsideringOnlyTaskDependency(){
 		List<BaseTask> taskList = this.diagram.getTaskNodeList().stream()
-				.map(node -> new Task(node))
+				.map(node -> new BaseTask(node))
 				.collect(Collectors.toList());
 		this.diagram.getTaskLinkList().forEach(link -> {
 			BaseTask destinationTask = taskList.stream()

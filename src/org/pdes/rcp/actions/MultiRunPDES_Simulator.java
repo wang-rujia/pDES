@@ -12,7 +12,6 @@ import org.pdes.rcp.actions.base.AbstractSimulationAction;
 import org.pdes.rcp.model.ProjectDiagram;
 import org.pdes.simulator.PDES_Simulator;
 import org.pdes.simulator.model.ProjectInfo;
-import org.pdes.simulator.model.base.BaseProjectInfo;
 
 public class MultiRunPDES_Simulator extends AbstractSimulationAction {
 	
@@ -68,7 +67,7 @@ public class MultiRunPDES_Simulator extends AbstractSimulationAction {
 		 */
 		@Override
 		public String call() throws Exception {
-			BaseProjectInfo project = new ProjectInfo(diagram, numOfWorkflow);
+			ProjectInfo project = new ProjectInfo(diagram, numOfWorkflow);
 			PDES_Simulator sim = new PDES_Simulator(project);
 			sim.execute();
 			sim.saveResultFilesInDirectory(outputDirectoryPath, String.valueOf(no));
