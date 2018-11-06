@@ -133,8 +133,8 @@ public class PDES_Simulator{
 		readyTaskList.stream().forEachOrdered(task -> {
 				Optional<Resource> availableResource = freeResourceList.stream().filter(w -> w.hasSkill(task)).findFirst();
 				availableResource.ifPresent(resource ->{
-				task.addAllocatedResource(resource);
-				freeResourceList.remove(resource);
+					task.addAllocatedResource(resource);
+					freeResourceList.remove(resource);
 				});
 		});
 	}

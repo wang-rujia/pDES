@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import org.pdes.rcp.model.TaskNode;
@@ -140,20 +141,7 @@ public class Task {
 	 */
 	public void checkFinished(int time) {
 		if (remainingWorkAmount <= 0) {
-			if (isWorking()) {
-				addFinishTime(time);
-				remainingWorkAmount = 0;
-				
-				//Finish normally.
-				state = TaskState.FINISHED;
-				stateInt = 4;
-				for(Resource r : allocatedResourceList) {
-					if(r.getAssignedTaskList().stream().filter(t -> t.getStateInt() < 4).count() == 0) {
-						r.setStateFree();
-					}
-					r.addFinishTime(time);
-				}
-			} else if (isWorkingAdditionally()) {
+			if (isWorkingAdditionally()) {
 				addFinishTime(time);
 				remainingWorkAmount = 0;
 				state = TaskState.FINISHED;
@@ -161,6 +149,33 @@ public class Task {
 				for(Resource r : allocatedResourceList) {
 					r.setStateFree();
 					r.addFinishTime(time);
+				}
+			} else if (isWorking()) {
+				Random rand = new Random();
+				Double p = rand.nextDouble();
+				Map<Double, Integer> DelayMap = delay.getDelayMap(this.o);
+				Double pSum = 0.0;
+				boolean ifDelay = false;
+				for(Double key: DelayMap.keySet()){
+					pSum += key;
+					if(p<pSum){
+						state = TaskState.WORKING_ADDITIONALLY;
+						stateInt = 5;
+						if(DelayMap.get(key)==0) break;
+						remainingWorkAmount += DelayMap.get(key);
+						ifDelay = true;
+						break;
+					}
+				}
+				if(!ifDelay){
+					addFinishTime(time);
+					remainingWorkAmount = 0;
+					state = TaskState.FINISHED;
+					stateInt = 4;
+					for(Resource r : allocatedResourceList) {
+						r.setStateFree();
+						r.addFinishTime(time);
+					}
 				}
 			}
 		}
