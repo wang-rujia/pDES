@@ -34,6 +34,7 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
+import org.pdes.rcp.actions.MultiRunPDES_Simulator;
 import org.pdes.rcp.actions.NewProjectFileAction;
 import org.pdes.rcp.actions.OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkerAction;
 import org.pdes.rcp.actions.OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkersAction;
@@ -57,6 +58,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 	private OneRunPDES_BasicSimulator_TaskPerformedByMultiTaskWorkersAction basicSimMultiTaskWorker = new OneRunPDES_BasicSimulator_TaskPerformedByMultiTaskWorkersAction();
 //	private OneRunPDES_SimulatorConsideringReworkOfErrorToleranceAction retSim = new OneRunPDES_SimulatorConsideringReworkOfErrorToleranceAction();
 //	private MultiRunPDES_SimulatorConsideringReworkOfErrorToleranceAction multi_retSim = new MultiRunPDES_SimulatorConsideringReworkOfErrorToleranceAction();
+	private MultiRunPDES_Simulator multi_sim = new MultiRunPDES_Simulator();
 	
 	/**
 	 * This is the constructor.
@@ -101,6 +103,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		MenuManager multi_runMenu = new MenuManager("Run multiple");
 		simulationMenu.add(multi_runMenu);
 //		multi_runMenu.add(multi_retSim);
+		multi_runMenu.add(multi_sim);
 	}
 	
 }

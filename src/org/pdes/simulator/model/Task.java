@@ -28,21 +28,30 @@
  */
 package org.pdes.simulator.model;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.pdes.rcp.model.TaskNode;
 import org.pdes.simulator.model.base.BaseTask;
+import org.pdes.util.Delay;
+import org.pdes.util.Rework;
 
 /**
  * @author Takuya Goto <tgoto@s.h.k.u-tokyo.ac.jp>
  *
  */
 public class Task extends BaseTask {
-
-	/**
-	 * @param taskNode
-	 */
+	
+	private Map<Integer, Double> minimumWorkAmount = new LinkedHashMap<Integer, Double>();
+	private Rework rework;
+	private Delay delay;
+	
 	public Task(TaskNode taskNode) {
 		super(taskNode);
 		// TODO Auto-generated constructor stub
+		this.minimumWorkAmount=taskNode.getMinimumWorkAmountMap();
+		this.rework=taskNode.getRework();
+		this.delay=taskNode.getDelay();
 	}
 
 }
