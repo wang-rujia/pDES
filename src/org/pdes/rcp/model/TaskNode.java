@@ -29,9 +29,13 @@
 package org.pdes.rcp.model;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.pdes.rcp.model.base.NodeElement;
+import org.pdes.util.Delay;
+import org.pdes.util.Rework;
 
 /**
  * This is the TaskNode class.<br>
@@ -48,17 +52,10 @@ public class TaskNode extends NodeElement {
 	private int additionalWorkAmount; //Additional work amount if the amount of error exceeds the limit.
 	private boolean needFacility; //Need facility or not
 	
-	private List<Integer> om = new ArrayList<Integer>();
-	private List<Double> minimumWorkAmount = new ArrayList<Double>();
+	private Map<Integer,Double> minimumWorkAmountMap = new LinkedHashMap<Integer,Double>();
 	
-	private List<Integer> od = new ArrayList<Integer>();
-	private List<Integer> delayWorkAmount = new ArrayList<Integer>();
-	private List<Double> delayPossibility = new ArrayList<Double>();
-	
-	private List<Integer> or = new ArrayList<Integer>();
-	private List<Double> reworkProgress = new ArrayList<Double>();
-	private List<String> reworkFrom = new ArrayList<String>();
-	private List<Double> reworkPossibility = new ArrayList<Double>();
+	private Rework rework = new Rework();
+	private Delay delay = new Delay();
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	/**
@@ -165,23 +162,35 @@ public class TaskNode extends NodeElement {
 	}
 	
 	public void addMinimumWorkAmount(int o,double mwa){
-		for(int i=0;i<om.size();i++){
-			if(om.get(i)==o){
-				minimumWorkAmount.set(i, mwa);
-				return;
-			}
+		minimumWorkAmountMap.put(o, mwa);
+		ArrayList<Entry<Integer, Double>> sortList = new ArrayList<Map.Entry<Integer,Double>>(minimumWorkAmountMap.entrySet());
+		sortList.sort((o1,o2) -> {
+			return Integer.compare(o1.getKey(), o2.getKey());
+		});
+		minimumWorkAmountMap.clear();
+		for (Map.Entry<Integer, Double> entry: sortList){
+			minimumWorkAmountMap.put(entry.getKey(), entry.getValue());
 		}
-		om.add(o);
-		minimumWorkAmount.add(mwa);
 	}
 	
-	public List<Integer> getMinimumWorkAmountOList(){
-		return this.om;
+	public void addReworkInfo(int a, double b, double c, String d){
+		rework.addNewValue(a, b, c, d);
 	}
 	
-	public List<Double> getMinimumWorkAmountList(){
-		return this.minimumWorkAmount;
+	public void addDelayInfo(int a, double b, int c){
+		delay.addNewValue(a, b, c);
 	}
 	
+	public Map<Integer,Double> getMinimumWorkAmountMap(){
+		return this.minimumWorkAmountMap;
+	}
+	
+	public Rework getRework(){
+		return this.rework;
+	}
+	
+	public Delay getDelay(){
+		return this.delay;
+	}
 	
 }

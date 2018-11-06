@@ -29,6 +29,7 @@
 package org.pdes.rcp.view.parts;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
@@ -65,6 +66,8 @@ import org.pdes.rcp.model.TeamNode;
 import org.pdes.rcp.model.WorkerElement;
 import org.pdes.rcp.model.base.AbstractModel;
 import org.pdes.rcp.model.base.Link;
+import org.pdes.util.Delay;
+import org.pdes.util.Rework;
 
 /**
  * This is the ViewPart class for editing the attributes of clicked model in ProjectDiagram.<br>
@@ -118,9 +121,18 @@ public class SelectedModelViewPart extends ViewPart {
 	private Text taskNameText, taskWorkAmountText, taskAdditionalWorkAmountText, taskProgressText;
 	@SuppressWarnings("unused")
 	private Button taskNeedFacilityCheckBox;
+	
 	private Label minimumWorkAmountTableLabel;
 	private Table minimumWorkAmountTable;
 	private Button addMinimumWorkAmountButton;
+	
+	private Label delayTableLabel;
+	private Table delayTable;
+	private Button addDelayButton;
+	
+	private Label reworkTableLabel;
+	private Table reworkTable;
+	private Button addReworkButton;
 	
 	/**
 	 * Set visible mode of each attributes of model.
@@ -139,6 +151,12 @@ public class SelectedModelViewPart extends ViewPart {
 		minimumWorkAmountTableLabel.setVisible(visible);
 		minimumWorkAmountTable.setVisible(visible);
 		addMinimumWorkAmountButton.setVisible(visible);
+		delayTableLabel.setVisible(visible);
+		delayTable.setVisible(visible);
+		addDelayButton.setVisible(visible);
+		reworkTableLabel.setVisible(visible);
+		reworkTable.setVisible(visible);
+		addReworkButton.setVisible(visible);
 
 		if(visible){
 			taskNameText.setText(((TaskNode) selectedModel).getName());
@@ -811,9 +829,9 @@ public class SelectedModelViewPart extends ViewPart {
 		
 		minimumWorkAmountTable = new Table(parent, SWT.MULTI|SWT.BORDER|SWT.FULL_SELECTION);
 		FormData minimumWorkAmountTableFD = new FormData();
-		minimumWorkAmountTableFD.top= new FormAttachment(minimumWorkAmountTableLabel,10);
+		minimumWorkAmountTableFD.top= new FormAttachment(minimumWorkAmountTableLabel,12);
 		minimumWorkAmountTableFD.left = new FormAttachment(0,20);
-		minimumWorkAmountTableFD.bottom= new FormAttachment(55);
+		minimumWorkAmountTableFD.bottom= new FormAttachment(minimumWorkAmountTableLabel,150);
 		minimumWorkAmountTableFD.right = new FormAttachment(95);
 		minimumWorkAmountTable.setLayoutData(minimumWorkAmountTableFD);
 		minimumWorkAmountTable.setLinesVisible(true);
@@ -838,10 +856,92 @@ public class SelectedModelViewPart extends ViewPart {
 			}
 		});
 		FormData addMinimumWorkAmountButtonFD = new FormData();
-		addMinimumWorkAmountButtonFD.top= new FormAttachment(taskNameLabel,9);
+		addMinimumWorkAmountButtonFD.top= new FormAttachment(minimumWorkAmountTableLabel,-12);
 		addMinimumWorkAmountButtonFD.left= new FormAttachment(minimumWorkAmountTableLabel,10);
 		addMinimumWorkAmountButton.setLayoutData(addMinimumWorkAmountButtonFD);
         
+        delayTableLabel = new Label(parent, SWT.NULL);
+        delayTableLabel.setText("[Delay]occurrence time/additional work amount/possibility");
+        delayTableLabel.setFont(new Font(null, "", 10, 0));
+		FormData delayTableLabelFD = new FormData();
+		delayTableLabelFD.top= new FormAttachment(taskNameLabel,165);
+		delayTableLabelFD.left= new FormAttachment(0,10);
+		delayTableLabel.setLayoutData(delayTableLabelFD);
+		
+		delayTable = new Table(parent, SWT.MULTI|SWT.BORDER|SWT.FULL_SELECTION);
+		FormData delayTableFD = new FormData();
+		delayTableFD.top= new FormAttachment(delayTableLabel,12);
+		delayTableFD.left = new FormAttachment(0,20);
+		delayTableFD.bottom= new FormAttachment(delayTableLabel,150);
+		delayTableFD.right = new FormAttachment(95);
+		delayTable.setLayoutData(delayTableFD);
+		delayTable.setLinesVisible(true);
+		delayTable.setHeaderVisible(true);
+		delayTable.setEnabled(true);
+		final TableEditor delayTableEditor = new TableEditor(delayTable);
+		delayTableEditor.grabHorizontal = true;
+		addDelayButton = new Button(parent,SWT.PUSH);
+		addDelayButton.setText("ADD");
+		addDelayButton.setEnabled(true);
+		
+		addDelayButton.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				dialog.setTitleAndMessage("Add delay info", "Please input [occurrence time,additional work amount,possibility]");
+				if(dialog.open()==0){
+					String content = dialog.getTextString();
+					String[] a = content.split(",");
+					((TaskNode) selectedModel).addDelayInfo(Integer.parseInt(a[0]),Double.parseDouble(a[2]),Integer.parseInt(a[1]));
+					redrawAllTableForTask();
+				}
+			}
+		});
+		FormData addDelayButtonFD = new FormData();
+		addDelayButtonFD.top= new FormAttachment(delayTableLabel,-12);
+		addDelayButtonFD.left= new FormAttachment(delayTableLabel,10);
+		addDelayButton.setLayoutData(addDelayButtonFD);
+		
+        reworkTableLabel = new Label(parent, SWT.NULL);
+        reworkTableLabel.setText("[Rework]occurrence time/progress/from/possibility");
+        reworkTableLabel.setFont(new Font(null, "", 10, 0));
+		FormData reworkTableLabelFD = new FormData();
+		reworkTableLabelFD.top= new FormAttachment(delayTable,10);
+		reworkTableLabelFD.left= new FormAttachment(0,10);
+		reworkTableLabel.setLayoutData(reworkTableLabelFD);
+		
+		reworkTable = new Table(parent, SWT.MULTI|SWT.BORDER|SWT.FULL_SELECTION);
+		FormData reworkTableFD = new FormData();
+		reworkTableFD.top= new FormAttachment(taskNameLabel,350);
+		reworkTableFD.left = new FormAttachment(0,20);
+		reworkTableFD.bottom= new FormAttachment(reworkTableLabel,150);
+		reworkTableFD.right = new FormAttachment(95);
+		reworkTable.setLayoutData(reworkTableFD);
+		reworkTable.setLinesVisible(true);
+		reworkTable.setHeaderVisible(true);
+		reworkTable.setEnabled(true);
+		final TableEditor reworkTableEditor = new TableEditor(reworkTable);
+		reworkTableEditor.grabHorizontal = true;
+		addReworkButton = new Button(parent,SWT.PUSH);
+		addReworkButton.setText("ADD");
+		addReworkButton.setEnabled(true);
+		
+		addReworkButton.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				dialog.setTitleAndMessage("Add rework info", "Please input [occurrence time,progress, from ,possibility]");
+				if(dialog.open()==0){
+					String content = dialog.getTextString();
+					String[] a = content.split(",");
+					((TaskNode) selectedModel).addReworkInfo(Integer.parseInt(a[0]),Double.parseDouble(a[1]),Double.parseDouble(a[3]),a[2]);
+					redrawAllTableForTask();
+				}
+			}
+		});
+		FormData addReworkButtonFD = new FormData();
+		addReworkButtonFD.top= new FormAttachment(reworkTableLabel,-12);
+		addReworkButtonFD.left= new FormAttachment(reworkTableLabel,10);
+		addReworkButton.setLayoutData(addReworkButtonFD);
+		
 		///////////////////////Link////////////////////////////
 		linkTypeNameLabel = new Label(parent, SWT.NULL);
 		linkTypeNameLabel.setText("LinkType : ");
@@ -1236,27 +1336,91 @@ public class SelectedModelViewPart extends ViewPart {
 		//Column setting
 		TableColumn column = new TableColumn(minimumWorkAmountTable,SWT.NONE);
 		column.setText("occurrence time");
-		column.setWidth(60);
+		column.setWidth(150);
 		
 		column = new TableColumn(minimumWorkAmountTable,SWT.NONE);
 		column.setText("minimum work amount");
-		column.setWidth(60);
+		column.setWidth(150);
 			
 		//item setting
-		List<Integer> minimumWorkAmountOList = ((TaskNode) selectedModel).getMinimumWorkAmountOList();
-		List<Double> minimumWorkAmountList = ((TaskNode) selectedModel).getMinimumWorkAmountList();
-		for(int i=0;i<minimumWorkAmountOList.size();i++){
+		Map<Integer,Double> minimumWorkAmountMap = ((TaskNode) selectedModel).getMinimumWorkAmountMap();
+		for(int key: minimumWorkAmountMap.keySet()){
 			TableItem item = new TableItem(minimumWorkAmountTable,SWT.NONE);
-			item.setText(0, String.valueOf(minimumWorkAmountOList.get(i)));
-			item.setText(1, String.valueOf(minimumWorkAmountList.get(i)));
+			item.setText(0, String.valueOf(key));
+			item.setText(1, String.valueOf(minimumWorkAmountMap.get(key)));
 		}
 	}
 	
 	private void redrawDelayTable(){
 		
+		//Initialize
+		while ( delayTable.getColumnCount() > 0 ) {
+			delayTable.getColumns()[ 0 ].dispose();
+		}
+		while ( delayTable.getItemCount() > 0 ) {
+			delayTable.getItems()[ 0 ].dispose();
+		}
+		
+		//Column setting
+		TableColumn column = new TableColumn(delayTable,SWT.NONE);
+		column.setText("occurrence time");
+		column.setWidth(150);
+		
+		column = new TableColumn(delayTable,SWT.NONE);
+		column.setText("additional work amount");
+		column.setWidth(150);
+		
+		column = new TableColumn(delayTable,SWT.NONE);
+		column.setText("possibility");
+		column.setWidth(100);
+			
+		//item setting
+		Delay d = ((TaskNode) selectedModel).getDelay();
+		
+		for(int i=0;i<d.getSize();i++){
+			TableItem item = new TableItem(delayTable,SWT.NONE);
+			item.setText(0, String.valueOf(d.getOList().get(i)));
+			item.setText(1, String.valueOf(d.getAwaList().get(i)));
+			item.setText(2, String.valueOf(d.getPossibilityList().get(i)));
+		}
+		
 	}
 	
 	private void redrawReworkTable(){
+		//Initialize
+		while ( reworkTable.getColumnCount() > 0 ) {
+			reworkTable.getColumns()[ 0 ].dispose();
+		}
+		while ( reworkTable.getItemCount() > 0 ) {
+			reworkTable.getItems()[ 0 ].dispose();
+		}
 		
+		//Column setting
+		TableColumn column = new TableColumn(reworkTable,SWT.NONE);
+		column.setText("occurrence time");
+		column.setWidth(150);
+		
+		column = new TableColumn(reworkTable,SWT.NONE);
+		column.setText("progress");
+		column.setWidth(100);
+		
+		column = new TableColumn(reworkTable,SWT.NONE);
+		column.setText("from");
+		column.setWidth(100);
+		
+		column = new TableColumn(reworkTable,SWT.NONE);
+		column.setText("possibility");
+		column.setWidth(100);
+			
+		//item setting
+		Rework r = ((TaskNode) selectedModel).getRework();
+		
+		for(int i=0;i<r.getOList().size();i++){
+			TableItem item = new TableItem(reworkTable,SWT.NONE);
+			item.setText(0, String.valueOf(r.getOList().get(i)));
+			item.setText(1, String.valueOf(r.getProgressList().get(i)));
+			item.setText(2, r.getFromList().get(i));
+			item.setText(3, String.valueOf(r.getPossibilityList().get(i)));
+		}
 	}
 }
