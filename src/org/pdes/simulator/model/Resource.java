@@ -106,11 +106,12 @@ public class Resource {
 	 * @return
 	 */
 	public double getWorkAmountSkillPoint(Task task){
-		if (!hasSkill(task)) return 0.0;
-		double skillPoint = workAmountSkillMap.get(task.getName());
-		long sumOfWorkingTaskInThisTime = this.getAssignedTaskList().stream().filter(t -> t.getStateInt()==2||task.getStateInt()==3).count();
-		double progress = skillPoint / sumOfWorkingTaskInThisTime;
-		return progress;
+		for(Task t : this.assignedTaskList){
+			if(t.equals(task)) {
+				return this.workAmountSkillMap.get(t.getName());
+			}
+		}
+		return 0.0;
 	}
 	
 	/**

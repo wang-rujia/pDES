@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.pdes.rcp.model.TaskNode;
 import org.pdes.util.Delay;
@@ -90,6 +91,7 @@ public class Task {
 	}
 	
 	public void initialize() {
+		o=1;
 		est = 0;
 		eft = 0;
 		lst = 0;
@@ -124,11 +126,17 @@ public class Task {
 			state = TaskState.WORKING;
 			stateInt = 2;
 			addStartTime(time);
-			for(Resource r : allocatedResourceList) {
-				r.setStateWorking();
-				r.addStartTime(time);
-				r.addAssignedTask(this);
+			
+			List<Resource> aRLwithoutD=allocatedResourceList.stream()
+					.distinct()
+					.collect(Collectors.toList());
+			
+			for(Resource a : aRLwithoutD) {
+				a.setStateWorking();
+				a.addStartTime(time);
+				a.addAssignedTask(this);
 			}
+			
 		}
 	}
 	
@@ -146,9 +154,12 @@ public class Task {
 				remainingWorkAmount = 0;
 				state = TaskState.FINISHED;
 				stateInt = 4;
-				for(Resource r : allocatedResourceList) {
-					r.setStateFree();
-					r.addFinishTime(time);
+				List<Resource> aRLwithoutD=allocatedResourceList.stream()
+						.distinct()
+						.collect(Collectors.toList());
+				for(Resource a : aRLwithoutD) {
+					if(a.getAssignedTaskList().stream().filter(t -> !t.isFinished()).count() == 0) a.setStateFree();
+					a.addFinishTime(time);
 				}
 			} else if (isWorking()) {
 				Random rand = new Random();
@@ -172,9 +183,12 @@ public class Task {
 					remainingWorkAmount = 0;
 					state = TaskState.FINISHED;
 					stateInt = 4;
-					for(Resource r : allocatedResourceList) {
-						r.setStateFree();
-						r.addFinishTime(time);
+					List<Resource> aRLwithoutD=allocatedResourceList.stream()
+							.distinct()
+							.collect(Collectors.toList());
+					for(Resource a : aRLwithoutD) {
+						if(a.getAssignedTaskList().stream().filter(t -> !t.isFinished()).count() == 0) a.setStateFree();
+						a.addFinishTime(time);
 					}
 				}
 			}
@@ -192,12 +206,77 @@ public class Task {
 	public void perform(int time) {
 		if (isWorking() || isWorkingAdditionally()) {
 			double workAmount = 0;
-			for(Resource r : allocatedResourceList) {
-				workAmount += r.getWorkAmountSkillPoint(this);
-			}
+			List<Resource> aRLwithoutD=allocatedResourceList.stream()
+					.distinct()
+					.collect(Collectors.toList());
+			for(Resource a : aRLwithoutD) workAmount += a.getWorkAmountSkillPoint(this);
+
 			actualWorkAmount +=workAmount;
 			remainingWorkAmount -= workAmount;
-			progress = actualWorkAmount/this.getOccurrenceTime();
+			progress = actualWorkAmount/minimumWorkAmount.get(this.o);
+			
+			Random rand = new Random();
+			Double p = rand.nextDouble();
+			Map<Double, String> reworkMap = rework.getReworkMap(o, progress);
+			for(Double pSum : reworkMap.keySet()){
+				if(p<pSum){
+					String FromName = reworkMap.get(pSum);
+					Task From = searchTaskByName(FromName);
+					if(!From.equals(null)) {
+						From.setInitByRework(From.getOccurrenceTime(),time);
+					}
+				break;
+				}
+			}
+		}
+	}
+	
+	public Task searchTaskByName(String name){
+		for(Task t : this.inputTaskList){
+			if(t.getName().equals(name)) {
+				return t;
+			}else{
+				if(t.searchTaskByName(name).equals(null)){
+					continue;
+				}else{
+					return t.searchTaskByName(name);
+				}
+			}
+		}
+		return null;
+	}
+	
+	public void setInitByRework(int oc, int time){
+		if(isWorking()||isWorkingAdditionally()){
+			this.addFinishTime(time);
+			this.setOccurrenceTime(oc+1);
+			est = 0;
+			eft = 0;
+			lst = 0;
+			lft = 0;
+			progress=0.0;
+			remainingWorkAmount = minimumWorkAmount.get(oc+1);
+			actualWorkAmount = 0;
+			state = TaskState.NONE;
+			stateInt = 0;
+			for(Resource r : allocatedResourceList) {
+				r.setStateFree();
+				r.addFinishTime(time);
+			}
+		}else if(isFinished()){
+			this.setOccurrenceTime(oc+1);
+			est = 0;
+			eft = 0;
+			lst = 0;
+			lft = 0;
+			progress=0.0;
+			remainingWorkAmount = minimumWorkAmount.get(oc+1);
+			actualWorkAmount = 0;
+			state = TaskState.NONE;
+			stateInt = 0;
+			for(Task t : this.outputTaskList) {
+				t.setInitByRework(t.getOccurrenceTime(),time);
+			}
 		}
 	}
 	
@@ -205,46 +284,29 @@ public class Task {
 		return this.o;
 	}
 	
-	/**
-	 * Check whether the state of this task is NONE.
-	 * @return
-	 */
+	public void setOccurrenceTime(int o){
+		this.o = o;
+	}
+
 	public boolean isNone() {
 		return state == TaskState.NONE;
 	}
-	
-	/**
-	 * Check whether the state of this task is READY.
-	 * @return
-	 */
+
 	public boolean isReady() {
 		return state == TaskState.READY;
 	}
-	
-	/**
-	 * Check whether the state of this task is WORKING.
-	 * @return
-	 */
+
 	public boolean isWorking() {
 		return state == TaskState.WORKING;
 	}
-	
-	/**
-	 * Check whether the state of this task is ADDITIONAL WORKING.
-	 * @return
-	 */
+
 	public boolean isWorkingAdditionally() {
 		return state == TaskState.WORKING_ADDITIONALLY;
 	}
-	
-	/**
-	 * Check whether the state of this task is FINISHED.
-	 * @return
-	 */
+
 	public boolean isFinished() {
 		return state == TaskState.FINISHED;
 	}
-
 	
 	public void addInputTask(Task task) {
 		inputTaskList.add(task);

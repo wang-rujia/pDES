@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,15 +39,17 @@ public class PDES_Simulator{
 			if(checkAllTasksAreFinished()) return;
 			
 			//1. Get ready task and free resources
+			List<Task> workingTaskList = this.getWorkingTaskList();
 			List<Task> readyTaskList = this.getReadyTaskList();
 			List<Resource> freeResourceList = this.getFreeResourceList();
+			List<Task> readyAndWorkingTaskList = Arrays.asList(readyTaskList,workingTaskList).stream().flatMap(list -> list.stream()).collect(Collectors.toList());
 			
 			//2. Sort ready task and free resources
-			this.sortTasks(readyTaskList);
+			this.sortTasks(readyAndWorkingTaskList);
 			this.sortResources(freeResourceList);
 			
 			//3. Allocate ready tasks to free resources
-			this.allocateReadyTasksToFreeResources(readyTaskList, freeResourceList);
+			this.allocateReadyTasksToFreeResourcesForSimuation(readyAndWorkingTaskList, freeResourceList);
 			
 			//4. Perform WORKING tasks and update the status of each task.
 			this.performAndUpdateAllWorkflow(time);
@@ -121,6 +124,17 @@ public class PDES_Simulator{
 		});
 	}
 	
+	public void allocateReadyTasksToFreeResourcesForSimuation(List<Task> readyAndWorkingTaskList, List<Resource> freeResourceList){		
+		this.sortTasks(readyAndWorkingTaskList);
+		readyAndWorkingTaskList.stream().forEachOrdered(task -> {
+				Optional<Resource> availableResource = freeResourceList.stream().filter(w -> w.hasSkill(task)).findFirst();
+				availableResource.ifPresent(resource ->{
+				task.addAllocatedResource(resource);
+				freeResourceList.remove(resource);
+				});
+		});
+	}
+	
 	/**
 	 * Allocate ready tasks to free workers and facilities if necessary.<br>
 	 * This method is only for single-task worker simulator.
@@ -128,7 +142,7 @@ public class PDES_Simulator{
 	 * @param readyTaskList
 	 * @param freeWorkerList
 	 */
-	public void allocateReadyTasksToFreeResources(List<Task> readyTaskList, List<Resource> freeResourceList){		
+	public void allocateReadyTasksToFreeResourcesForSingleTaskWorkerSimuation(List<Task> readyTaskList, List<Resource> freeResourceList){		
 		this.sortTasks(readyTaskList);
 		readyTaskList.stream().forEachOrdered(task -> {
 				Optional<Resource> availableResource = freeResourceList.stream().filter(w -> w.hasSkill(task)).findFirst();
@@ -215,7 +229,7 @@ public class PDES_Simulator{
 			// workflow
 			pw.println();
 			pw.println("Gantt chart of each Task");
-			pw.println(String.join(separator , new String[]{"Workflow", "Task", "Resource Name", "Ready Time", "Start Time", "Finish Time", "Start Time", "Finish Time", "Start Time", "Finish Time"}));
+			pw.println(String.join(separator , new String[]{"Workflow", "Task", "Resource Name", "Ready Time", "Start Time", "Finish Time","Ready Time", "Start Time", "Finish Time", "Ready Time","Start Time", "Finish Time"}));
 			this.workflowList.forEach(w -> {
 				String workflowName = "workflow ID:"+w.getId();
 				w.getTaskList().forEach(t ->{
