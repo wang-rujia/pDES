@@ -25,16 +25,19 @@ public class MultiRunPDES_Simulator extends AbstractSimulationAction {
 	protected List<Future<String>> doSimulation(ProjectDiagram diagram, int workflowCount) {
 		//Set the number of simulation
 		int numOfSimulation = this.setNumOfSimulation();
-		if(numOfSimulation < 0) {
+		if(numOfSimulation <= 0) {
 			this.aggregateMode = false;
 			return null;
+		}else{
+			this.aggregateMode = true;
 		}
 		
 		long start = System.currentTimeMillis();
 		ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		List<Future<String>> resultList = new ArrayList<Future<String>>();
 		IntStream.range(0,numOfSimulation).forEach(i ->{
-			resultList.add(service.submit(new BasicSimulationTask(i, diagram, workflowCount, outputDir)));
+			BasicSimulationTask basicSimulationTask = new BasicSimulationTask(i, diagram, workflowCount, outputDir);
+			resultList.add(service.submit(basicSimulationTask));
 		});
 		service.shutdown();
 		long end = System.currentTimeMillis();
