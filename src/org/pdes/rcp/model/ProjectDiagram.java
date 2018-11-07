@@ -155,6 +155,16 @@ public class ProjectDiagram extends Diagram {
 					pw.println("			<Progress>"+task.getProgress()+"</Progress>");
 					pw.println("			<AdditionalWorkAmount>"+task.getAdditionalWorkAmount()+"</AdditionalWorkAmount>");
 					pw.println("			<NeedFacility>"+task.isNeedFacility()+"</NeedFacility>");
+					Map<Integer, Double> minimumMap = task.getMinimumWorkAmountMap();
+					for(Integer i : minimumMap.keySet()){
+						pw.println("			<MinimumWorkAmount>"+i.toString()+","+minimumMap.get(i).toString()+"</MinimumWorkAmount>");
+					}
+					for(int i=0;i<task.getDelay().getSize();i++){
+						pw.println("			<Delay>"+task.getDelay().getInfoByIndex(i)+"</Delay>");
+					}
+					for(int i=0;i<task.getRework().getSize();i++){
+						pw.println("			<Rework>"+task.getRework().getInfoByIndex(i)+"</Rework>");
+					}
 					pw.println("		</TaskNode>");
 				}else if(node instanceof ComponentNode){
 					ComponentNode component = (ComponentNode) node;
@@ -258,6 +268,7 @@ public class ProjectDiagram extends Diagram {
 					task.setHeight(Integer.parseInt(attrs.getNamedItem("Height").getNodeValue()));
 				}
 				NodeList tags = node.getChildNodes();
+				
 				for(int j=0;j<tags.getLength();j++){
 					Node tag = tags.item(j);
 					if(tag.getNodeName()==null||tag.getNodeName().equals("#text")){
@@ -269,8 +280,21 @@ public class ProjectDiagram extends Diagram {
 						else if(tagName.equals("Progress")) task.setProgress(Double.parseDouble(value));
 						else if(tagName.equals("AdditionalWorkAmount")) task.setAdditionalWorkAmount(Integer.parseInt(value));
 						else if(tagName.equals("NeedFacility")) task.setNeedFacility(Boolean.parseBoolean(value));
+						else if(tagName.equals("MinimumWorkAmount")){
+							String[] a = value.split(",");
+							task.addMinimumWorkAmount(Integer.parseInt(a[0]), Double.parseDouble(a[1]));
+						}
+						else if(tagName.equals("Delay")){
+							String[] a = value.split(",");
+							task.addDelayInfo(Integer.parseInt(a[0]), Double.parseDouble(a[1]), Integer.parseInt(a[2]));
+						}
+						else if(tagName.equals("Rework")){
+							String[] a = value.split(",");
+							task.addReworkInfo(Integer.parseInt(a[0]), Double.parseDouble(a[1]), Double.parseDouble(a[2]), a[3]);
+						}
 					}
 				}
+				
 				this.addNodeElement(task);
 			}
 			///////////////////////////////

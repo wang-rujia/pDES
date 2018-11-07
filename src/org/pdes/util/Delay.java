@@ -39,6 +39,11 @@ public class Delay {
 		return m;
 	}
 	
+	public String getInfoByIndex(int i){
+		String info = o.get(i).toString()+","+possibility.get(i).toString()+","+awa.get(i).toString();
+		return info;
+	}
+	
 	public int getSize(){
 		return o.size();
 	}

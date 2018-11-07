@@ -415,6 +415,8 @@ public class Task {
 	public void addAllocatedResource(Resource r) {
 		this.allocatedResourceList.add(r);
 	}
+	
+
 
 
 }

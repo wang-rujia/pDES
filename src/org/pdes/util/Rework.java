@@ -42,6 +42,15 @@ public class Rework {
 		return dupli;
 	}
 	
+	public String getInfoByIndex(int i){
+		String info = o.get(i).toString()+","+progress.get(i)+","+possibility.get(i).toString()+","+From.get(i);
+		return info;
+	}
+	
+	public int getSize(){
+		return o.size();
+	}
+	
 	public List<Integer> getOList(){
 		return this.o;
 	}

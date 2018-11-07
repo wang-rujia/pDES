@@ -100,6 +100,7 @@ public abstract class AbstractSimulationAction extends Action {
 		
 		//2. Set the number of workflow and product
 		int workflowCount = 1;
+		/*
 		if(aggregateMode) {//Multiple mode has to be TURE of aggregateMode.
 			InputSimpleTextDialog workflowCountTextDialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
 			workflowCountTextDialog.setTitleAndMessage("The number of products (or workflows)", "Enter the number of products creating or workflows running.");
@@ -117,6 +118,7 @@ public abstract class AbstractSimulationAction extends Action {
 				return;
 			}
 		}
+		*/
 		
 		//3. Set directory for save result.
 		DirectoryDialog directoryDialog = new DirectoryDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
