@@ -23,6 +23,17 @@ public class Delay {
 		awa.add(c);
 	}
 	
+	public void removeValue(int a, double b, int c){
+		for(int i=0;i<this.getSize();i++){
+			if(o.get(i)==a &&  possibility.get(i)==b && awa.get(i).equals(c)){
+				o.remove(i);
+				possibility.remove(i);
+				awa.remove(i);
+				break;
+			}
+		}
+	}
+	
 	public Map<Double,Integer> getDelayMap(int oc){
 		Map<Double, Integer> m = new LinkedHashMap<Double, Integer>();
 		for(int i=0; i<o.size();i++){

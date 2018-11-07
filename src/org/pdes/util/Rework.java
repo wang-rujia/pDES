@@ -25,6 +25,18 @@ public class Rework {
 		From.add(d);
 	}
 	
+	public void removeValue(int a, double b, double c, String d){
+		for(int i=0;i<this.getSize();i++){
+			if(o.get(i)==a && progress.get(i)==b && possibility.get(i)==c && From.get(i).equals(d)){
+				o.remove(i);
+				progress.remove(i);
+				possibility.remove(i);
+				From.remove(i);
+				break;
+			}
+		}
+	}
+	
 	public Rework duplicate(){
 		Rework dupli = new Rework();
 		boolean ifExist;

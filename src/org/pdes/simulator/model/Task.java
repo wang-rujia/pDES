@@ -80,6 +80,7 @@ public class Task {
 	private List<Integer> startTimeList = new ArrayList<Integer>(); // list of start time of one task
 	private List<Integer> finishTimeList = new ArrayList<Integer>(); // list of finish time of one task
 	private List<Resource> allocatedResourceList = new ArrayList<Resource>();
+	private List<Double> resourceCapacityLog = new ArrayList<Double>();
 	
 	public Task(TaskNode taskNode) {
 		this.id = UUID.randomUUID().toString();
@@ -157,10 +158,13 @@ public class Task {
 				List<Resource> aRLwithoutD=allocatedResourceList.stream()
 						.distinct()
 						.collect(Collectors.toList());
+				double rc=0.0;
 				for(Resource a : aRLwithoutD) {
 					if(a.getAssignedTaskList().stream().filter(t -> !t.isFinished()).count() == 0) a.setStateFree();
 					a.addFinishTime(time);
+					rc+=a.getWorkAmountSkillPoint(this);
 				}
+				addResourceCapacityLog(rc);
 			} else if (isWorking()) {
 				Random rand = new Random();
 				Double p = rand.nextDouble();
@@ -186,10 +190,13 @@ public class Task {
 					List<Resource> aRLwithoutD=allocatedResourceList.stream()
 							.distinct()
 							.collect(Collectors.toList());
+					double rc=0.0;
 					for(Resource a : aRLwithoutD) {
 						if(a.getAssignedTaskList().stream().filter(t -> !t.isFinished()).count() == 0) a.setStateFree();
 						a.addFinishTime(time);
+						rc+=a.getWorkAmountSkillPoint(this);
 					}
+					addResourceCapacityLog(rc);
 				}
 			}
 		}
@@ -259,6 +266,14 @@ public class Task {
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
 			stateInt = 0;
+			
+			double rc = 0;
+			List<Resource> aRLwithoutD=allocatedResourceList.stream()
+					.distinct()
+					.collect(Collectors.toList());
+			for(Resource a : aRLwithoutD) rc += a.getWorkAmountSkillPoint(this);
+			this.addResourceCapacityLog(rc);
+			
 			for(Resource r : allocatedResourceList) {
 				r.setStateFree();
 				r.addFinishTime(time);
@@ -416,7 +431,13 @@ public class Task {
 		this.allocatedResourceList.add(r);
 	}
 	
-
+	public List<Double> getResourceCapacityLog(){
+		return this.resourceCapacityLog;
+	}
+	
+	public void addResourceCapacityLog(double a){
+		this.resourceCapacityLog.add(a);
+	}
 
 
 }

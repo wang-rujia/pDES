@@ -3,6 +3,7 @@ package org.pdes.simulator;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -24,6 +25,7 @@ public class PDES_Simulator{
 	protected List<Workflow> workflowList;
 	protected List<Resource> resourceList;
 	protected int time = 0;
+	private int count=0;
 	
 	public PDES_Simulator(ProjectInfo project) {
 		this.project=project;
@@ -205,6 +207,7 @@ public class PDES_Simulator{
 	public void saveResultFilesInDirectory(String outputDir, String no){
 		String fileName = this.getResultFileName(no);//the list of file name
 		this.saveResultFileByCsv(outputDir, fileName+".csv");//1. Gantt chart data by csv format.
+		this.saveResultAsLog(outputDir, "log.txt"); //2. Event log by txt. 
 	}
 	
 	private String getResultFileName(String no){
@@ -262,6 +265,37 @@ public class PDES_Simulator{
 			
 			pw.close();
 			os.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void saveResultAsLog(String outputDirName, String resultFileName){
+		try {
+			FileWriter fw = new FileWriter(new File(outputDirName, resultFileName),true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			this.workflowList.forEach(w -> {
+				String projectName = w.getId().substring(1, 5);
+				w.getTaskList().forEach(t ->{
+					String taskName = t.getName();
+					for(int i =0;i<t.getStartTimeList().size();i++){
+						count++;
+						String st = Integer.toString(t.getStartTimeList().get(i)+1);
+						String et = Integer.toString(t.getFinishTimeList().get(i)+1);
+						Double rc = t.getResourceCapacityLog().get(i);
+						String log = Integer.toString(count) + ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
+						try {
+							bw.write(log);
+							bw.newLine();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				});
+			});
+			bw.close();
+			fw.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

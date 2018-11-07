@@ -181,6 +181,14 @@ public class TaskNode extends NodeElement {
 		delay.addNewValue(a, b, c);
 	}
 	
+	public void deleteReworkInfo(int a, double b, double c, String d){
+		rework.removeValue(a, b, c, d);
+	}
+	
+	public void deleteDelayInfo(int a, double b, int c){
+		delay.removeValue(a, b, c);
+	}
+	
 	public Map<Integer,Double> getMinimumWorkAmountMap(){
 		return this.minimumWorkAmountMap;
 	}
@@ -191,6 +199,10 @@ public class TaskNode extends NodeElement {
 	
 	public Delay getDelay(){
 		return this.delay;
+	}
+	
+	public void deleteMinimumWorkAmountInfo(int i){
+		minimumWorkAmountMap.remove(i);
 	}
 	
 }

@@ -125,14 +125,17 @@ public class SelectedModelViewPart extends ViewPart {
 	private Label minimumWorkAmountTableLabel;
 	private Table minimumWorkAmountTable;
 	private Button addMinimumWorkAmountButton;
+	private Button deleteMinimumWorkAmountButton;
 	
 	private Label delayTableLabel;
 	private Table delayTable;
 	private Button addDelayButton;
+	private Button deleteDelayButton;
 	
 	private Label reworkTableLabel;
 	private Table reworkTable;
 	private Button addReworkButton;
+	private Button deleteReworkButton;
 	
 	/**
 	 * Set visible mode of each attributes of model.
@@ -151,12 +154,15 @@ public class SelectedModelViewPart extends ViewPart {
 		minimumWorkAmountTableLabel.setVisible(visible);
 		minimumWorkAmountTable.setVisible(visible);
 		addMinimumWorkAmountButton.setVisible(visible);
+		deleteMinimumWorkAmountButton.setVisible(visible);
 		delayTableLabel.setVisible(visible);
 		delayTable.setVisible(visible);
 		addDelayButton.setVisible(visible);
+		deleteDelayButton.setVisible(visible);
 		reworkTableLabel.setVisible(visible);
 		reworkTable.setVisible(visible);
 		addReworkButton.setVisible(visible);
+		deleteReworkButton.setVisible(visible);
 
 		if(visible){
 			taskNameText.setText(((TaskNode) selectedModel).getName());
@@ -371,7 +377,7 @@ public class SelectedModelViewPart extends ViewPart {
 		teamNameText.setLayoutData(teamNameTextFD);
 		
 		workerTableLabel = new Label(parent, SWT.NULL);
-		workerTableLabel.setText("[Workers]\nskill: work amount[parson-day]/error probability");
+		workerTableLabel.setText("[Workers]\nskill: work amount[person-day]/error probability");
 		workerTableLabel.setFont(new Font(null, "", 10, 0));
 		FormData workerTableLabelFD = new FormData();
 		workerTableLabelFD.top= new FormAttachment(teamNameLabel,12);
@@ -837,8 +843,6 @@ public class SelectedModelViewPart extends ViewPart {
 		minimumWorkAmountTable.setLinesVisible(true);
 		minimumWorkAmountTable.setHeaderVisible(true);
 		minimumWorkAmountTable.setEnabled(true);
-		final TableEditor minimumWorkAmountTableEditor = new TableEditor(minimumWorkAmountTable);
-		minimumWorkAmountTableEditor.grabHorizontal = true;
 		
 		addMinimumWorkAmountButton = new Button(parent,SWT.PUSH);
 		addMinimumWorkAmountButton.setText("ADD/REWRITE");
@@ -859,7 +863,27 @@ public class SelectedModelViewPart extends ViewPart {
 		addMinimumWorkAmountButtonFD.top= new FormAttachment(minimumWorkAmountTableLabel,-12);
 		addMinimumWorkAmountButtonFD.left= new FormAttachment(minimumWorkAmountTableLabel,10);
 		addMinimumWorkAmountButton.setLayoutData(addMinimumWorkAmountButtonFD);
-        
+ 
+		deleteMinimumWorkAmountButton = new Button(parent,SWT.PUSH);
+		deleteMinimumWorkAmountButton.setText("DELETE");
+		deleteMinimumWorkAmountButton.setEnabled(true);
+		deleteMinimumWorkAmountButton.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				if(((TaskNode) selectedModel).getMinimumWorkAmountMap().size()==0) return;
+				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				dialog.setTitleAndMessage("Delete record", "Please input the occurrence number");
+				if(dialog.open()==0){
+					int oc = Integer.parseInt(dialog.getTextString());
+					((TaskNode) selectedModel).deleteMinimumWorkAmountInfo(oc);
+					redrawAllTableForTask();
+				}
+			}
+		});
+		FormData deleteMinimumWorkAmountButtonFD = new FormData();
+		deleteMinimumWorkAmountButtonFD.top= new FormAttachment(minimumWorkAmountTableLabel,-12);
+		deleteMinimumWorkAmountButtonFD.left= new FormAttachment(addMinimumWorkAmountButton,10);
+		deleteMinimumWorkAmountButton.setLayoutData(deleteMinimumWorkAmountButtonFD);
+		
         delayTableLabel = new Label(parent, SWT.NULL);
         delayTableLabel.setText("[Delay]occurrence time/additional work amount/possibility");
         delayTableLabel.setFont(new Font(null, "", 10, 0));
@@ -878,12 +902,10 @@ public class SelectedModelViewPart extends ViewPart {
 		delayTable.setLinesVisible(true);
 		delayTable.setHeaderVisible(true);
 		delayTable.setEnabled(true);
-		final TableEditor delayTableEditor = new TableEditor(delayTable);
-		delayTableEditor.grabHorizontal = true;
+		
 		addDelayButton = new Button(parent,SWT.PUSH);
 		addDelayButton.setText("ADD");
 		addDelayButton.setEnabled(true);
-		
 		addDelayButton.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e){
 				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
@@ -900,6 +922,27 @@ public class SelectedModelViewPart extends ViewPart {
 		addDelayButtonFD.top= new FormAttachment(delayTableLabel,-12);
 		addDelayButtonFD.left= new FormAttachment(delayTableLabel,10);
 		addDelayButton.setLayoutData(addDelayButtonFD);
+		
+		deleteDelayButton = new Button(parent,SWT.PUSH);
+		deleteDelayButton.setText("DELETE");
+		deleteDelayButton.setEnabled(true);
+		deleteDelayButton.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				if(((TaskNode) selectedModel).getDelay().getSize()==0) return;
+				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				dialog.setTitleAndMessage("Delete record", "Please input [occurrence time,additional work amount,possibility]");
+				if(dialog.open()==0){
+					String content = dialog.getTextString();
+					String[] a = content.split(",");
+					((TaskNode) selectedModel).deleteDelayInfo(Integer.parseInt(a[0]),Double.parseDouble(a[2]),Integer.parseInt(a[1]));
+					redrawAllTableForTask();
+				}
+			}
+		});
+		FormData deleteDelayButtonFD = new FormData();
+		deleteDelayButtonFD.top= new FormAttachment(delayTableLabel,-12);
+		deleteDelayButtonFD.left= new FormAttachment(addDelayButton,10);
+		deleteDelayButton.setLayoutData(deleteDelayButtonFD);
 		
         reworkTableLabel = new Label(parent, SWT.NULL);
         reworkTableLabel.setText("[Rework]occurrence time/progress/from/possibility");
@@ -919,12 +962,10 @@ public class SelectedModelViewPart extends ViewPart {
 		reworkTable.setLinesVisible(true);
 		reworkTable.setHeaderVisible(true);
 		reworkTable.setEnabled(true);
-		final TableEditor reworkTableEditor = new TableEditor(reworkTable);
-		reworkTableEditor.grabHorizontal = true;
+		
 		addReworkButton = new Button(parent,SWT.PUSH);
 		addReworkButton.setText("ADD");
 		addReworkButton.setEnabled(true);
-		
 		addReworkButton.addSelectionListener(new SelectionAdapter(){
 			public void widgetSelected(SelectionEvent e){
 				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
@@ -941,6 +982,27 @@ public class SelectedModelViewPart extends ViewPart {
 		addReworkButtonFD.top= new FormAttachment(reworkTableLabel,-12);
 		addReworkButtonFD.left= new FormAttachment(reworkTableLabel,10);
 		addReworkButton.setLayoutData(addReworkButtonFD);
+		
+		deleteReworkButton = new Button(parent,SWT.PUSH);
+		deleteReworkButton.setText("DELETE");
+		deleteReworkButton.setEnabled(true);
+		deleteReworkButton.addSelectionListener(new SelectionAdapter(){
+			public void widgetSelected(SelectionEvent e){
+				if(((TaskNode) selectedModel).getRework().getSize()==0) return;
+				InputSimpleTextDialog dialog = new InputSimpleTextDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+				dialog.setTitleAndMessage("Delete record", "Please input [occurrence time,progress, from ,possibility]");
+				if(dialog.open()==0){
+					String content = dialog.getTextString();
+					String[] a = content.split(",");
+					((TaskNode) selectedModel).deleteReworkInfo(Integer.parseInt(a[0]),Double.parseDouble(a[1]),Double.parseDouble(a[3]),a[2]);
+					redrawAllTableForTask();
+				}
+			}
+		});
+		FormData deleteReworkButtonFD = new FormData();
+		deleteReworkButtonFD.top= new FormAttachment(reworkTableLabel,-12);
+		deleteReworkButtonFD.left= new FormAttachment(addReworkButton,10);
+		deleteReworkButton.setLayoutData(deleteReworkButtonFD);
 		
 		///////////////////////Link////////////////////////////
 		linkTypeNameLabel = new Label(parent, SWT.NULL);
