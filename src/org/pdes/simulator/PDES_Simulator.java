@@ -242,8 +242,8 @@ public class PDES_Simulator{
 					baseInfo.add(t.getAllocatedResourceList().stream().map(Resource::getName).collect(Collectors.joining("+")));
 					IntStream.range(0, t.getFinishTimeList().size()).forEach(i -> {
 						baseInfo.add(String.valueOf(t.getReadyTimeList().get(i)));
-						baseInfo.add(String.valueOf(t.getStartTimeList().get(i)));
-						baseInfo.add(String.valueOf(t.getFinishTimeList().get(i)));
+						baseInfo.add(String.valueOf(t.getStartTimeList().get(i)+1));
+						baseInfo.add(String.valueOf(t.getFinishTimeList().get(i)+1));
 					});
 					pw.println(String.join(separator ,baseInfo.stream().toArray(String[]::new)));
 				});
@@ -257,8 +257,8 @@ public class PDES_Simulator{
 				List<String> baseInfo = new ArrayList<String>();
 				baseInfo.add(r.getName());
 				IntStream.range(0, r.getAssignedTaskList().size()).forEach(i -> {
-					baseInfo.add(String.valueOf(r.getStartTimeList().get(i)));
-					baseInfo.add(String.valueOf(r.getFinishTimeList().get(i)));
+					baseInfo.add(String.valueOf(r.getStartTimeList().get(i)+1));
+					baseInfo.add(String.valueOf(r.getFinishTimeList().get(i)+1));
 				});
 				pw.println(String.join(separator, baseInfo.stream().toArray(String[]::new)));
 			});
@@ -275,7 +275,7 @@ public class PDES_Simulator{
 			FileWriter fw = new FileWriter(new File(outputDirName, resultFileName),true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			this.workflowList.forEach(w -> {
-				String projectName = w.getId().substring(1, 5);
+				String projectName = w.getId();
 				w.getTaskList().forEach(t ->{
 					String taskName = t.getName();
 					for(int i =0;i<t.getStartTimeList().size();i++){
@@ -283,7 +283,7 @@ public class PDES_Simulator{
 						String st = Integer.toString(t.getStartTimeList().get(i)+1);
 						String et = Integer.toString(t.getFinishTimeList().get(i)+1);
 						Double rc = t.getResourceCapacityLog().get(i);
-						String log = Integer.toString(count) + ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
+						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
 						try {
 							bw.write(log);
 							bw.newLine();

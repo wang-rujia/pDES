@@ -206,12 +206,13 @@ public class Workflow{
 	}
 	
 	public int getDuration() {
-		return this.taskList.stream()
+		int a=this.taskList.stream()
 				.mapToInt(t -> t.getFinishTimeList().stream()
 						.max(Comparator.naturalOrder())
 						.orElse(0))
 				.max()
 				.orElse(0);
+		return a+1;
 	}
 	
 	public double getTotalWorkAmount() {
