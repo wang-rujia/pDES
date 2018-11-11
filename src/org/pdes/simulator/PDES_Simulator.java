@@ -129,11 +129,12 @@ public class PDES_Simulator{
 	public void allocateReadyTasksToFreeResourcesForSimuation(List<Task> readyAndWorkingTaskList, List<Resource> freeResourceList){		
 		this.sortTasks(readyAndWorkingTaskList);
 		readyAndWorkingTaskList.stream().forEachOrdered(task -> {
-				Optional<Resource> availableResource = freeResourceList.stream().filter(w -> w.hasSkill(task)).findFirst();
-				availableResource.ifPresent(resource ->{
-				task.addAllocatedResource(resource);
-				freeResourceList.remove(resource);
-				});
+				List<Resource> availableResource = freeResourceList.stream().filter(w -> w.hasSkill(task)).collect(Collectors.toList());
+				for(Resource r : availableResource) {
+					task.addAllocatedResource(r);
+					r.setStateWorking();
+					freeResourceList.remove(r);
+				}
 		});
 	}
 	

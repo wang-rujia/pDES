@@ -149,6 +149,7 @@ public class Task {
 	 * @param time
 	 */
 	public void checkFinished(int time) {
+		
 		if (remainingWorkAmount <= 0) {
 			if (isWorkingAdditionally()) {
 				addFinishTime(time);
@@ -160,9 +161,10 @@ public class Task {
 						.collect(Collectors.toList());
 				double rc=0.0;
 				for(Resource a : aRLwithoutD) {
-					if(a.getAssignedTaskList().stream().filter(t -> !t.isFinished()).count() == 0) a.setStateFree();
+					a.setStateFree();
 					a.addFinishTime(time);
 					rc+=a.getWorkAmountSkillPoint(this);
+					allocatedResourceList.remove(a);
 				}
 				addResourceCapacityLog(rc);
 			} else if (isWorking()) {
@@ -192,9 +194,10 @@ public class Task {
 							.collect(Collectors.toList());
 					double rc=0.0;
 					for(Resource a : aRLwithoutD) {
-						if(a.getAssignedTaskList().stream().filter(t -> !t.isFinished()).count() == 0) a.setStateFree();
+						a.setStateFree();
 						a.addFinishTime(time);
 						rc+=a.getWorkAmountSkillPoint(this);
+						allocatedResourceList.remove(a);
 					}
 					addResourceCapacityLog(rc);
 				}
@@ -271,13 +274,14 @@ public class Task {
 			List<Resource> aRLwithoutD=allocatedResourceList.stream()
 					.distinct()
 					.collect(Collectors.toList());
-			for(Resource a : aRLwithoutD) rc += a.getWorkAmountSkillPoint(this);
+			for(Resource a : aRLwithoutD){
+				a.setStateFree();
+				a.addFinishTime(time);
+				rc += a.getWorkAmountSkillPoint(this);
+				allocatedResourceList.remove(a);
+			}
 			this.addResourceCapacityLog(rc);
 			
-			for(Resource r : allocatedResourceList) {
-				r.setStateFree();
-				r.addFinishTime(time);
-			}
 		}else if(isFinished()){
 			this.setOccurrenceTime(oc+1);
 			est = 0;

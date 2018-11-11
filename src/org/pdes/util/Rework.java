@@ -88,7 +88,7 @@ public class Rework {
 	}
 	
 	public Map<Double, String> getReworkMap(int oc, double pro){
-		pro=Math.floor(pro*10)/10;
+		//pro=Math.floor(pro*10)/10;
 		Map<Double, String> m = new LinkedHashMap<Double, String>();
 		double key=0;
 		for(int i=0;i<o.size();i++){
