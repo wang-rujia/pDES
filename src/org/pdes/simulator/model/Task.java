@@ -223,7 +223,19 @@ public class Task {
 
 			actualWorkAmount +=workAmount;
 			remainingWorkAmount -= workAmount;
-			progress = actualWorkAmount/minimumWorkAmount.get(this.o);
+			if(minimumWorkAmount.size()>=o){
+				progress = actualWorkAmount/minimumWorkAmount.get(this.o);
+			}else{
+				for(int j=o-1;j>0;j--){
+					if(minimumWorkAmount.size()>=j){
+						System.out.println("cannot find correct minimum work amount:"+this.o+", using mwa("+j+")");
+						progress = actualWorkAmount/minimumWorkAmount.get(j);
+						break;
+					}
+				}
+			}
+			
+			
 			
 			Random rand = new Random();
 			Double p = rand.nextDouble();
@@ -265,7 +277,21 @@ public class Task {
 			lst = 0;
 			lft = 0;
 			progress=0.0;
-			remainingWorkAmount = minimumWorkAmount.get(oc+1);
+			
+			if(minimumWorkAmount.size()>=oc+1){
+				remainingWorkAmount = minimumWorkAmount.get(oc+1);
+				progress = actualWorkAmount/minimumWorkAmount.get(oc+1);
+			}else{
+				for(int j=oc;j>0;j--){
+					if(minimumWorkAmount.size()>=j){
+						System.out.println("cannot find correct minimum work amount:"+oc+", using mwa("+j+")");
+						remainingWorkAmount = minimumWorkAmount.get(j);
+						progress = actualWorkAmount/minimumWorkAmount.get(j);
+						break;
+					}
+				}
+			}
+			
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
 			stateInt = 0;
@@ -289,7 +315,19 @@ public class Task {
 			lst = 0;
 			lft = 0;
 			progress=0.0;
-			remainingWorkAmount = minimumWorkAmount.get(oc+1);
+			
+			if(minimumWorkAmount.size()>=oc+1){
+				remainingWorkAmount = minimumWorkAmount.get(oc+1);
+			}else{
+				for(int j=oc;j>0;j--){
+					if(minimumWorkAmount.size()>=j){
+						System.out.println("cannot find correct minimum work amount:"+(oc+1)+", using mwa("+j+")");
+						remainingWorkAmount = minimumWorkAmount.get(j);
+						break;
+					}
+				}
+			}
+			
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
 			stateInt = 0;
