@@ -64,6 +64,8 @@ public class Task {
 	private Map<Integer, Double> minimumWorkAmount = new LinkedHashMap<Integer, Double>();
 	private Rework rework;
 	private Delay delay;
+	private double defaultWorkAmount;
+	private int reworkFlag;
 	
 	// Changeable variable on simulation
 	private int o = 1; //occurrence time
@@ -102,6 +104,19 @@ public class Task {
 		actualWorkAmount = 0;
 		state = TaskState.NONE;
 		stateInt = 0;
+	}
+	
+	public void initializeForExistingModel(int simNo) {
+		reworkFlag=0;
+		est = 0;
+		eft = 0;
+		lst = 0;
+		lft = 0;
+		defaultWorkAmount = generateDuration(minimumWorkAmount.get(1),minimumWorkAmount.get(2),minimumWorkAmount.get(3),simNo);
+		actualWorkAmount = 0;
+		state = TaskState.NONE;
+		stateInt = 0;
+		remainingWorkAmount = defaultWorkAmount;
 	}
 	
 	/**
@@ -205,6 +220,55 @@ public class Task {
 		}
 	}
 	
+	public void checkFinishedForExistingModel(int time,List<Task> allTaskList) {
+		if (remainingWorkAmount <= 0) {
+			if (isWorking()) {
+				addFinishTime(time);
+				remainingWorkAmount = 0;
+				state = TaskState.FINISHED;
+				stateInt = 4;
+				List<Resource> aRLwithoutD=allocatedResourceList.stream()
+						.distinct()
+						.collect(Collectors.toList());
+				double rc=0.0;
+				for(Resource a : aRLwithoutD) {
+					a.setStateFree();
+					a.addFinishTime(time);
+					rc+=a.getWorkAmountSkillPoint(this);
+					allocatedResourceList.remove(a);
+				}
+				addResourceCapacityLog(rc);
+				
+				Random rand = new Random();
+				Double p = rand.nextDouble();
+				Double probability =0.0;
+				Double ri=0.0;
+				for(String From:rework.getFromList()){
+					probability = rework.getPossibilityList().get(rework.getFromList().indexOf(From));
+					ri=rework.getProgressList().get(rework.getFromList().indexOf(From));
+					Task FromTask = null;
+					for(Task a: allTaskList){
+						if(a.getName().equals(From)){
+							FromTask = a;
+							break;
+						}
+					}
+					if(p>probability && !FromTask.equals(null)){
+						if(FromTask.reworkFlag==0){
+							FromTask.reworkFlag=1;
+							FromTask.remainingWorkAmount = FromTask.getRemainingWorkAmount()+FromTask.getDefaultWorkAmount()*ri*FromTask.minimumWorkAmount.get(4);
+							FromTask.state = TaskState.NONE;
+							FromTask.stateInt = 0;
+							FromTask.actualWorkAmount=0;
+						}
+					}
+					p=rand.nextDouble();
+				}
+				
+			} 
+		}
+	}
+	
 	/**
 	 * Performing this task by following steps:<br>
 	 * 1. Decreasing remaining work amount and adding cost to resource.<br>
@@ -235,8 +299,6 @@ public class Task {
 				}
 			}
 			
-			
-			
 			Random rand = new Random();
 			Double p = rand.nextDouble();
 			Map<Double, String> reworkMap = rework.getReworkMap(o, progress);
@@ -253,16 +315,25 @@ public class Task {
 		}
 	}
 	
+	public void performForExistingModel(int time) {
+		if (isWorking()) {
+			double workAmount = 0;
+			List<Resource> aRLwithoutD=allocatedResourceList.stream()
+					.distinct()
+					.collect(Collectors.toList());
+			for(Resource a : aRLwithoutD) workAmount += a.getWorkAmountSkillPoint(this);
+
+			actualWorkAmount +=workAmount;
+			remainingWorkAmount -= workAmount;
+		}
+	}
+	
 	public Task searchTaskByName(String name){
 		for(Task t : this.inputTaskList){
 			if(t.getName().equals(name)) {
 				return t;
 			}else{
-				if(t.searchTaskByName(name).equals(null)){
-					continue;
-				}else{
-					return t.searchTaskByName(name);
-				}
+				return t.searchTaskByName(name);
 			}
 		}
 		return null;
@@ -479,6 +550,27 @@ public class Task {
 	
 	public void addResourceCapacityLog(double a){
 		this.resourceCapacityLog.add(a);
+	}
+	
+	public double getDefaultWorkAmount(){
+		return this.defaultWorkAmount;
+	}
+	
+	public double generateDuration(double a,double c,double b,int simNo){
+		Random r = new Random();
+		double p=r.nextDouble();
+		double x1 = Math.pow(p*(c-a)*(b-a), 0.5)+a;
+		double x2 = b-Math.pow((1-p)*(b-a)*(b-c), 0.5);
+		if(x1>a && x1<c){
+			return x1;
+		}
+		else if(x2>c && x2<b){
+			return x2;
+		}
+		else{
+			System.out.println("wrong triangle");
+			return 0;
+		}
 	}
 
 
