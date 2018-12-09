@@ -65,7 +65,7 @@ public class Task {
 	private Rework rework;
 	private Delay delay;
 	private double defaultWorkAmount;
-	private int reworkFlag;
+	private boolean workFlag=false;
 	
 	// Changeable variable on simulation
 	private int o = 1; //occurrence time
@@ -107,7 +107,7 @@ public class Task {
 	}
 	
 	public void initializeForExistingModel(int simNo) {
-		reworkFlag=0;
+		workFlag=false;
 		est = 0;
 		eft = 0;
 		lst = 0;
@@ -222,6 +222,7 @@ public class Task {
 	
 	public void checkFinishedForExistingModel(int time,List<Task> allTaskList) {
 		if (remainingWorkAmount <= 0) {
+			workFlag=true;
 			if (isWorking()) {
 				addFinishTime(time);
 				remainingWorkAmount = 0;
@@ -253,14 +254,11 @@ public class Task {
 							break;
 						}
 					}
-					if(p>probability && !FromTask.equals(null)){
-						if(FromTask.reworkFlag==0){
-							FromTask.reworkFlag=1;
-							FromTask.remainingWorkAmount = FromTask.getRemainingWorkAmount()+FromTask.getDefaultWorkAmount()*ri*FromTask.minimumWorkAmount.get(4);
-							FromTask.state = TaskState.NONE;
-							FromTask.stateInt = 0;
-							FromTask.actualWorkAmount=0;
-						}
+					if(p>probability && !FromTask.equals(null) && FromTask.workFlag){
+						FromTask.remainingWorkAmount = FromTask.getDefaultWorkAmount()*ri*FromTask.minimumWorkAmount.get(4);
+						FromTask.state = TaskState.NONE;
+						FromTask.stateInt = 0;
+						FromTask.actualWorkAmount=0;
 					}
 					p=rand.nextDouble();
 				}
@@ -277,7 +275,7 @@ public class Task {
 	 * @param time
 	 * @param componentErrorRework
 	 */
-	public void perform(int time) {
+	public void perform(int time, List<Task> allTask) {
 		if (isWorking() || isWorkingAdditionally()) {
 			double workAmount = 0;
 			List<Resource> aRLwithoutD=allocatedResourceList.stream()
@@ -305,7 +303,11 @@ public class Task {
 			for(Double pSum : reworkMap.keySet()){
 				if(p<pSum){
 					String FromName = reworkMap.get(pSum);
-					Task From = searchTaskByName(FromName);
+					//Task From = searchTaskByName(FromName);
+					Task From = null;
+					for(Task s : allTask){
+						if(s.getName().equals(FromName)) From=s;
+					}
 					if(!From.equals(null)) {
 						From.setInitByRework(From.getOccurrenceTime(),time);
 					}
@@ -355,7 +357,7 @@ public class Task {
 			}else{
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
-						System.out.println("cannot find correct minimum work amount:"+oc+", using mwa("+j+")");
+						System.out.println(this.getName()+",cannot find correct minimum work amount:"+oc+", using mwa("+j+")");
 						remainingWorkAmount = minimumWorkAmount.get(j);
 						progress = actualWorkAmount/minimumWorkAmount.get(j);
 						break;
@@ -392,7 +394,7 @@ public class Task {
 			}else{
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
-						System.out.println("cannot find correct minimum work amount:"+(oc+1)+", using mwa("+j+")");
+						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using mwa("+j+")");
 						remainingWorkAmount = minimumWorkAmount.get(j);
 						break;
 					}

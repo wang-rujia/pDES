@@ -204,8 +204,8 @@ public class Workflow{
 		taskList.forEach(t -> t.checkFinishedForExistingModel(time,allTaskList));
 	}
 	
-	public void perform(int time) {
-		taskList.forEach(t -> t.perform(time));
+	public void perform(int time, List<Task> allTask) {
+		taskList.forEach(t -> t.perform(time, allTask));
 	}
 	
 	public void performForExistingModel(int time) {
