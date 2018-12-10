@@ -65,7 +65,7 @@ public class Task {
 	private Rework rework;
 	private Delay delay;
 	private double defaultWorkAmount;
-	private boolean workFlag=false;
+	private boolean reworkFlag=false;
 	
 	// Changeable variable on simulation
 	private int o = 1; //occurrence time
@@ -107,7 +107,6 @@ public class Task {
 	}
 	
 	public void initializeForExistingModel(int simNo) {
-		workFlag=false;
 		est = 0;
 		eft = 0;
 		lst = 0;
@@ -221,9 +220,8 @@ public class Task {
 	}
 	
 	public void checkFinishedForExistingModel(int time,List<Task> allTaskList) {
-		if (remainingWorkAmount <= 0) {
-			workFlag=true;
-			if (isWorking()) {
+		if (isWorking()) {
+			if (remainingWorkAmount < 0.01) {
 				addFinishTime(time);
 				remainingWorkAmount = 0;
 				state = TaskState.FINISHED;
@@ -241,28 +239,63 @@ public class Task {
 				addResourceCapacityLog(rc);
 				
 				Random rand = new Random();
-				Double p = rand.nextDouble();
+				Double p=0.0;
+				
 				Double probability =0.0;
 				Double ri=0.0;
+				Task FromTask=null;
+				Double probability2= 0.0;
+				Double ri2 = 0.0;
+				Task FromTask2=null;
+				
 				for(String From:rework.getFromList()){
-					probability = rework.getPossibilityList().get(rework.getFromList().indexOf(From));
-					ri=rework.getProgressList().get(rework.getFromList().indexOf(From));
-					Task FromTask = null;
 					for(Task a: allTaskList){
 						if(a.getName().equals(From)){
 							FromTask = a;
 							break;
 						}
 					}
-					if(p>probability && !FromTask.equals(null) && FromTask.workFlag){
-						FromTask.remainingWorkAmount = FromTask.getDefaultWorkAmount()*ri*FromTask.minimumWorkAmount.get(4);
-						FromTask.state = TaskState.NONE;
-						FromTask.stateInt = 0;
-						FromTask.actualWorkAmount=0;
+					if(!FromTask.equals(null) && (int)From.charAt(0) < (int)this.name.charAt(0)){
+						p=rand.nextDouble();
+						probability = rework.getPossibilityList().get(rework.getFromList().indexOf(From));
+						ri=rework.getProgressList().get(rework.getFromList().indexOf(From));
+						if(p>probability){
+							FromTask.remainingWorkAmount += FromTask.defaultWorkAmount*ri*FromTask.minimumWorkAmount.get(4);
+							if(FromTask.remainingWorkAmount>FromTask.defaultWorkAmount) FromTask.remainingWorkAmount = FromTask.defaultWorkAmount*0.9;
+							FromTask.actualWorkAmount=FromTask.defaultWorkAmount-FromTask.remainingWorkAmount;
+							FromTask.reworkFlag=true;
+							if(FromTask.stateInt == 4){
+								FromTask.state = TaskState.READY;
+								FromTask.stateInt = 1;
+								FromTask.addReadyTime(time);
+							}
+							for(String From2:FromTask.rework.getFromList()){
+								for(Task a: allTaskList){
+									if(a.getName().equals(From2)){
+										FromTask2 = a;
+										break;
+									}
+								}
+								if(!FromTask2.equals(null) && (int)From2.charAt(0) > (int)From.charAt(0)){
+									p = rand.nextDouble();
+									probability2 = FromTask.rework.getPossibilityList().get(FromTask.rework.getFromList().indexOf(From2));
+									ri2=FromTask.rework.getProgressList().get(FromTask.rework.getFromList().indexOf(From2));
+									if(p>probability2){
+										FromTask2.remainingWorkAmount += FromTask2.defaultWorkAmount*ri2*FromTask2.minimumWorkAmount.get(4);
+										if(FromTask2.remainingWorkAmount>FromTask2.defaultWorkAmount){
+											if(FromTask2.reworkFlag){
+												FromTask2.remainingWorkAmount=FromTask2.defaultWorkAmount * 0.9;
+											}else{
+												FromTask2.remainingWorkAmount=FromTask2.defaultWorkAmount;
+											}
+										}
+										FromTask2.actualWorkAmount=FromTask2.defaultWorkAmount-FromTask2.remainingWorkAmount;
+									}
+								}
+							}
+						}
 					}
-					p=rand.nextDouble();
 				}
-				
 			} 
 		}
 	}
@@ -573,6 +606,21 @@ public class Task {
 			System.out.println("wrong triangle");
 			return 0;
 		}
+	}
+	
+	public boolean ifDependentTask(String task){
+		for(Task t: this.inputTaskList){
+			if(t.getName().equals(task)){
+				return true;
+			}else{
+				if(t.ifDependentTask(task)==false){
+					continue;
+				}else{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 
