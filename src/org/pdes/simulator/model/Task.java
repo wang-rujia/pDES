@@ -113,9 +113,9 @@ public class Task {
 		lft = 0;
 		defaultWorkAmount = generateDuration(minimumWorkAmount.get(1),minimumWorkAmount.get(2),minimumWorkAmount.get(3),simNo);
 		actualWorkAmount = 0;
+		remainingWorkAmount = defaultWorkAmount;
 		state = TaskState.NONE;
 		stateInt = 0;
-		remainingWorkAmount = defaultWorkAmount;
 	}
 	
 	/**
@@ -160,6 +160,12 @@ public class Task {
 			state = TaskState.WORKING;
 			stateInt = 2;
 			addStartTime(time);
+		}
+		if (isWorking() && !inputTaskList.stream().allMatch(t -> t.isFinished())){
+			state = TaskState.NONE;
+			stateInt = 0;
+			addResourceCapacityLog(1);
+			addFinishTime(time);
 		}
 	}
 	
@@ -233,7 +239,7 @@ public class Task {
 			remainingWorkAmount = 0;
 			state = TaskState.FINISHED;
 			stateInt = 4;
-			addResourceCapacityLog(10);
+			addResourceCapacityLog(1);
 			Random rand = new Random();
 			Double p=0.0;
 				
@@ -264,11 +270,7 @@ public class Task {
 						delta = FromTask.remainingWorkAmount-delta;
 						System.out.println(simNo+"[B]Rework From ["+this.name+"]to["+From+"], add duration: "+delta);
 						FromTask.reworkFlag=true;
-						if(FromTask.isFinished()){
-							FromTask.state = TaskState.WORKING;
-							FromTask.stateInt = 1;
-							FromTask.addStartTime(time+1);
-						}
+						if(FromTask.isFinished()) FromTask.setNone();
 						for(String From2:FromTask.rework.getFromList()){
 							for(Task a: allTaskList){
 								if(a.getName().equals(From2)){
@@ -276,11 +278,12 @@ public class Task {
 									break;
 								}
 							}
-							if(!FromTask2.equals(null) && (int)From2.charAt(0) > (int)From.charAt(0) && (int)From2.charAt(0) > (int)this.name.charAt(0)){
+							if(!FromTask2.equals(null) && (int)From2.charAt(0) > (int)From.charAt(0) && (int)From2.charAt(0) < (int)this.name.charAt(0)){
 								p = rand.nextDouble();
 								probability2 = FromTask.rework.getPossibilityList().get(FromTask.rework.getFromList().indexOf(From2));
 								ri2=FromTask.rework.getProgressList().get(FromTask.rework.getFromList().indexOf(From2));
 								if(p>probability2){
+									if(FromTask2.isFinished()) FromTask2.setNone();
 									delta = FromTask2.remainingWorkAmount;
 									FromTask2.remainingWorkAmount += FromTask2.defaultWorkAmount*ri2*FromTask2.minimumWorkAmount.get(4);
 									if(FromTask2.remainingWorkAmount>FromTask2.defaultWorkAmount){
@@ -628,6 +631,11 @@ public class Task {
 			}
 		}
 		return false;
+	}
+	
+	public void setNone(){
+		this.state=TaskState.NONE;
+		this.stateInt=0;
 	}
 
 

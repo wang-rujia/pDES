@@ -37,9 +37,12 @@ public class ExistingModel_Simulator {
 	
 	public void execute() {
 		this.initialize(simNo);
+		sortTasks();
 		while(true){
+			allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
+			allTaskList.forEach(t -> t.performForExistingModel(time));
+			allTaskList.forEach(t -> t.checkFinishedForExistingModel(time, allTaskList, simNo));
 			if(checkAllTasksAreFinished()) return;
-			this.performAndUpdateAllTasks(time);
 			time++;
 		}
 	}
@@ -60,12 +63,6 @@ public class ExistingModel_Simulator {
 
 	public boolean checkAllTasksAreFinished(){
 		return allTaskList.stream().allMatch(w -> w.isFinished());
-	}
-	
-	public void performAndUpdateAllTasks(int time){
-		allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
-		allTaskList.forEach(t -> t.performForExistingModel(time));
-		allTaskList.forEach(t -> t.checkFinishedForExistingModel(time, allTaskList, simNo));
 	}
 
 	public void saveResultFilesInDirectory(String outputDir, String no){
@@ -104,8 +101,8 @@ public class ExistingModel_Simulator {
 					baseInfo.add(workflowName);
 					baseInfo.add(t.getName());
 					IntStream.range(0, t.getFinishTimeList().size()).forEach(i -> {
-						baseInfo.add(String.valueOf(t.getStartTimeList().get(i)));
-						baseInfo.add(String.valueOf(t.getFinishTimeList().get(i)));
+						baseInfo.add(String.valueOf("st: "+t.getStartTimeList().get(i)));
+						baseInfo.add(String.valueOf("et: "+t.getFinishTimeList().get(i)));
 					});
 					pw.println(String.join(separator ,baseInfo.stream().toArray(String[]::new)));
 				});
@@ -126,10 +123,10 @@ public class ExistingModel_Simulator {
 				String projectName = w.getId();
 				w.getTaskList().forEach(t ->{
 					String taskName = t.getName();
-					for(int i =0;i<t.getStartTimeList().size();i++){
+					for(int i =0;i<t.getFinishTimeList().size();i++){
 						count++;
-						String st = Integer.toString(t.getStartTimeList().get(i)/10);
-						String et = Integer.toString(t.getFinishTimeList().get(i)/10);
+						String st = Integer.toString(t.getStartTimeList().get(i)/100);
+						String et = Integer.toString(t.getFinishTimeList().get(i)/100);
 						Double rc = t.getResourceCapacityLog().get(i);
 						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
 						try {
