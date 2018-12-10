@@ -155,6 +155,14 @@ public class Task {
 		}
 	}
 	
+	public void checkPermissionForExistingModel(int time) {
+		if (isNone() && inputTaskList.stream().allMatch(t -> t.isFinished())) {
+			state = TaskState.WORKING;
+			stateInt = 2;
+			addStartTime(time);
+		}
+	}
+	
 	/**
 	 * If remaining work amount of this task is lower than 0, check whether the state of this task has to be FINISHED or not.<br>
 	 * Whether additional work is assigned to this task or not is judged by additionalTaskFlag.
@@ -219,84 +227,78 @@ public class Task {
 		}
 	}
 	
-	public void checkFinishedForExistingModel(int time,List<Task> allTaskList) {
-		if (isWorking()) {
-			if (remainingWorkAmount < 0.01) {
-				addFinishTime(time);
-				remainingWorkAmount = 0;
-				state = TaskState.FINISHED;
-				stateInt = 4;
-				List<Resource> aRLwithoutD=allocatedResourceList.stream()
-						.distinct()
-						.collect(Collectors.toList());
-				double rc=0.0;
-				for(Resource a : aRLwithoutD) {
-					a.setStateFree();
-					a.addFinishTime(time);
-					rc+=a.getWorkAmountSkillPoint(this);
-					allocatedResourceList.remove(a);
-				}
-				addResourceCapacityLog(rc);
+	public void checkFinishedForExistingModel(int time,List<Task> allTaskList,int simNo) {
+		if (isWorking() && remainingWorkAmount <=0) {
+			addFinishTime(time);
+			remainingWorkAmount = 0;
+			state = TaskState.FINISHED;
+			stateInt = 4;
+			addResourceCapacityLog(10);
+			Random rand = new Random();
+			Double p=0.0;
 				
-				Random rand = new Random();
-				Double p=0.0;
-				
-				Double probability =0.0;
-				Double ri=0.0;
-				Task FromTask=null;
-				Double probability2= 0.0;
-				Double ri2 = 0.0;
-				Task FromTask2=null;
-				
-				for(String From:rework.getFromList()){
-					for(Task a: allTaskList){
-						if(a.getName().equals(From)){
-							FromTask = a;
-							break;
-						}
+			Double probability = 0.0;
+			Double ri = 0.0;
+			Task FromTask = null;
+			Double probability2 = 0.0;
+			Double ri2 = 0.0;
+			Task FromTask2 = null;
+			Double delta = -10000.0;
+			
+			for(String From:rework.getFromList()){
+				for(Task a: allTaskList){
+					if(a.getName().equals(From)){
+						FromTask = a;
+						break;
 					}
-					if(!FromTask.equals(null) && (int)From.charAt(0) < (int)this.name.charAt(0)){
-						p=rand.nextDouble();
-						probability = rework.getPossibilityList().get(rework.getFromList().indexOf(From));
-						ri=rework.getProgressList().get(rework.getFromList().indexOf(From));
-						if(p>probability){
-							FromTask.remainingWorkAmount += FromTask.defaultWorkAmount*ri*FromTask.minimumWorkAmount.get(4);
-							if(FromTask.remainingWorkAmount>FromTask.defaultWorkAmount) FromTask.remainingWorkAmount = FromTask.defaultWorkAmount*0.9;
-							FromTask.actualWorkAmount=FromTask.defaultWorkAmount-FromTask.remainingWorkAmount;
-							FromTask.reworkFlag=true;
-							if(FromTask.stateInt == 4){
-								FromTask.state = TaskState.READY;
-								FromTask.stateInt = 1;
-								FromTask.addReadyTime(time);
-							}
-							for(String From2:FromTask.rework.getFromList()){
-								for(Task a: allTaskList){
-									if(a.getName().equals(From2)){
-										FromTask2 = a;
-										break;
-									}
+				}
+				if(!FromTask.equals(null) && (int)From.charAt(0) < (int)this.name.charAt(0)){
+					p=rand.nextDouble();
+					probability = rework.getPossibilityList().get(rework.getFromList().indexOf(From));
+					ri=rework.getProgressList().get(rework.getFromList().indexOf(From));
+					if(p>probability){
+						delta = FromTask.remainingWorkAmount;
+						FromTask.remainingWorkAmount += FromTask.defaultWorkAmount*ri*FromTask.minimumWorkAmount.get(4);
+						if(FromTask.remainingWorkAmount>FromTask.defaultWorkAmount) FromTask.remainingWorkAmount = FromTask.defaultWorkAmount*0.9;
+						FromTask.actualWorkAmount=FromTask.defaultWorkAmount-FromTask.remainingWorkAmount;
+						delta = FromTask.remainingWorkAmount-delta;
+						System.out.println(simNo+"[B]Rework From ["+this.name+"]to["+From+"], add duration: "+delta);
+						FromTask.reworkFlag=true;
+						if(FromTask.isFinished()){
+							FromTask.state = TaskState.WORKING;
+							FromTask.stateInt = 1;
+							FromTask.addStartTime(time+1);
+						}
+						for(String From2:FromTask.rework.getFromList()){
+							for(Task a: allTaskList){
+								if(a.getName().equals(From2)){
+									FromTask2 = a;
+									break;
 								}
-								if(!FromTask2.equals(null) && (int)From2.charAt(0) > (int)From.charAt(0)){
-									p = rand.nextDouble();
-									probability2 = FromTask.rework.getPossibilityList().get(FromTask.rework.getFromList().indexOf(From2));
-									ri2=FromTask.rework.getProgressList().get(FromTask.rework.getFromList().indexOf(From2));
-									if(p>probability2){
-										FromTask2.remainingWorkAmount += FromTask2.defaultWorkAmount*ri2*FromTask2.minimumWorkAmount.get(4);
-										if(FromTask2.remainingWorkAmount>FromTask2.defaultWorkAmount){
-											if(FromTask2.reworkFlag){
-												FromTask2.remainingWorkAmount=FromTask2.defaultWorkAmount * 0.9;
-											}else{
-												FromTask2.remainingWorkAmount=FromTask2.defaultWorkAmount;
-											}
+							}
+							if(!FromTask2.equals(null) && (int)From2.charAt(0) > (int)From.charAt(0) && (int)From2.charAt(0) > (int)this.name.charAt(0)){
+								p = rand.nextDouble();
+								probability2 = FromTask.rework.getPossibilityList().get(FromTask.rework.getFromList().indexOf(From2));
+								ri2=FromTask.rework.getProgressList().get(FromTask.rework.getFromList().indexOf(From2));
+								if(p>probability2){
+									delta = FromTask2.remainingWorkAmount;
+									FromTask2.remainingWorkAmount += FromTask2.defaultWorkAmount*ri2*FromTask2.minimumWorkAmount.get(4);
+									if(FromTask2.remainingWorkAmount>FromTask2.defaultWorkAmount){
+										if(FromTask2.reworkFlag){
+											FromTask2.remainingWorkAmount=FromTask2.defaultWorkAmount * 0.9;
+										}else{
+											FromTask2.remainingWorkAmount=FromTask2.defaultWorkAmount;
 										}
-										FromTask2.actualWorkAmount=FromTask2.defaultWorkAmount-FromTask2.remainingWorkAmount;
 									}
+									delta = FromTask2.remainingWorkAmount-delta;
+									if(delta>0.0001) System.out.println("  "+simNo+"[F]Rework From ["+FromTask.name+"]to["+From2+"], add duration: "+delta);
+									FromTask2.actualWorkAmount=FromTask2.defaultWorkAmount-FromTask2.remainingWorkAmount;
 								}
 							}
 						}
 					}
 				}
-			} 
+			}
 		}
 	}
 	
@@ -352,14 +354,8 @@ public class Task {
 	
 	public void performForExistingModel(int time) {
 		if (isWorking()) {
-			double workAmount = 0;
-			List<Resource> aRLwithoutD=allocatedResourceList.stream()
-					.distinct()
-					.collect(Collectors.toList());
-			for(Resource a : aRLwithoutD) workAmount += a.getWorkAmountSkillPoint(this);
-
-			actualWorkAmount +=workAmount;
-			remainingWorkAmount -= workAmount;
+			actualWorkAmount ++;
+			remainingWorkAmount --;
 		}
 	}
 	
@@ -442,6 +438,17 @@ public class Task {
 			}
 		}
 	}
+	
+	public void setInitByReworkForExistingModel(int time){
+		if(isWorking()){
+			state = TaskState.NONE;
+			stateInt = 0;
+			addFinishTime(time);
+		}else{
+			for(Task t : this.outputTaskList) t.setInitByReworkForExistingModel(time);
+		}
+	}
+	
 	
 	public int getOccurrenceTime(){
 		return this.o;

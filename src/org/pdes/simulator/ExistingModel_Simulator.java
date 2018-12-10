@@ -8,13 +8,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.pdes.simulator.model.ProjectInfo;
-import org.pdes.simulator.model.Resource;
 import org.pdes.simulator.model.Task;
 import org.pdes.simulator.model.Workflow;
 
@@ -22,7 +18,7 @@ public class ExistingModel_Simulator {
 
 	protected ProjectInfo project;
 	protected List<Workflow> workflowList;
-	protected List<Resource> resourceList;
+	protected List<Task> allTaskList;
 	protected int time = 0;
 	private int count=0;
 	private int simNo;
@@ -30,126 +26,46 @@ public class ExistingModel_Simulator {
 	public ExistingModel_Simulator(ProjectInfo project,int no) {
 		this.project=project;
 		this.workflowList=project.getWorkflowList_child();
-		this.resourceList=project.getResourceList_child();
+		this.allTaskList = workflowList.stream()
+						   	.map(w -> w.getTaskList())
+							.collect(() -> new ArrayList<>(),
+									(l, t) -> l.addAll(t),
+									(l1, l2) -> l1.addAll(l2)
+									);
 		this.simNo=no;
 	}
 	
 	public void execute() {
 		this.initialize(simNo);
 		while(true){
-			
-			//0. Check finished or not.
 			if(checkAllTasksAreFinished()) return;
-			
-			//1. Get ready task and free resources
-			List<Task> workingTaskList = this.getWorkingTaskList();
-			List<Task> readyTaskList = this.getReadyTaskList();
-			List<Resource> freeResourceList = this.getFreeResourceList();
-			List<Task> readyAndWorkingTaskList = Arrays.asList(readyTaskList,workingTaskList).stream().flatMap(list -> list.stream()).collect(Collectors.toList());
-			
-			//2. Sort ready task and free resources
-			this.sortTasks(readyAndWorkingTaskList);
-			this.sortResources(freeResourceList);
-			
-			//3. Allocate ready tasks to free resources
-			this.allocateReadyTasksToFreeResourcesForSimuation(readyAndWorkingTaskList, freeResourceList);
-			
-			//4. Perform WORKING tasks and update the status of each task.
-			this.performAndUpdateAllWorkflow(time);
+			this.performAndUpdateAllTasks(time);
 			time++;
 		}
 	}
 	
-	public void initialize(int simNo){
-		this.time = 0;
-		workflowList.forEach(w -> w.initializeForExistingModel(simNo));
-		resourceList.forEach(r -> r.initialize());
+	public void sortTasks(){
+		allTaskList.sort((t1, t2) -> {
+			int c1 = (int)t1.getName().charAt(0);
+			int c2 = (int)t2.getName().charAt(0);
+			return Integer.compare(c1, c2);
+		});
 	}
-
-	public int getTime() {
-		return time;
+	
+	public void initialize(int simNo){
+		this.time = 1;
+		allTaskList.forEach(t -> t.initializeForExistingModel(simNo));
+		this.sortTasks();
 	}
 
 	public boolean checkAllTasksAreFinished(){
-		return workflowList.stream().allMatch(w -> w.isFinished());
-	}
-
-	public List<Task> getReadyTaskList(){
-		return workflowList.stream()
-				.map(w -> w.getReadyTaskList())
-				.collect(
-						() -> new ArrayList<>(),
-						(l, t) -> l.addAll(t),
-						(l1, l2) -> l1.addAll(l2)
-						);
-	}
-
-	public List<Task> getWorkingTaskList(){
-		return workflowList.stream()
-				.map(w -> w.getWorkingTaskList())
-				.collect(
-						() -> new ArrayList<>(),
-						(l, t) -> l.addAll(t),
-						(l1, l2) -> l1.addAll(l2)
-						);
+		return allTaskList.stream().allMatch(w -> w.isFinished());
 	}
 	
-	public List<Resource> getFreeResourceList(){
-		return resourceList.stream()
-				.filter(r -> r.isFree())
-				.collect(Collectors.toList());
-	}
-	
-	/**
-	 * Sort Tasks as followings:<br>
-	 * 1. Due date<br>
-	 * 2. TSLACK (a task which Slack time(LS-ES) is lower has high priority)
-	 * @param resourceList
-	 */
-	public void sortTasks(List<Task> taskList){
-		taskList.sort((t1, t2) -> {
-			double slack1 = t1.getLst() - t1.getEst();
-			double slack2 = t2.getLst() - t2.getEst();
-			return Double.compare(slack1, slack2);
-		});
-	}
-	
-	/**
-	 * Sort Worker as followings:<br>
-	 * 1. SSP (a resource which amount of skill point is lower has high priority)
-	 * @param resourceList
-	 */
-	public void sortResources(List<Resource> resourceList){
-		resourceList.sort((w1, w2) -> {
-			double sp1 = w1.getTotalWorkAmountSkillPoint();
-			double sp2 = w2.getTotalWorkAmountSkillPoint();
-			return Double.compare(sp1, sp2);
-		});
-	}
-	
-	public void allocateReadyTasksToFreeResourcesForSimuation(List<Task> readyAndWorkingTaskList, List<Resource> freeResourceList){		
-		this.sortTasks(readyAndWorkingTaskList);
-		readyAndWorkingTaskList.stream().forEachOrdered(task -> {
-				List<Resource> availableResource = freeResourceList.stream().filter(w -> w.hasSkill(task)).collect(Collectors.toList());
-				for(Resource r : availableResource) {
-					task.addAllocatedResource(r);
-					r.setStateWorking();
-					freeResourceList.remove(r);
-				}
-		});
-	}
-	
-	/**
-	 * Perform and update all workflow in this time.
-	 * @param time 
-	 * @param componentErrorRework 
-	 */
-	public void performAndUpdateAllWorkflow(int time){
-		workflowList.forEach(w -> w.checkWorking(time));//READY -> WORKING
-		workflowList.forEach(w -> w.performForExistingModel(time));//update information of WORKING task in each workflow
-		workflowList.forEach(w -> w.checkFinishedForExistingModel(time, w.getTaskList()));// WORKING -> WORKING_ADDITIONALLY or FINISHED
-		workflowList.forEach(w -> w.checkReady(time));// NONE -> READY
-		workflowList.forEach(w -> w.updatePERTData(time));//Update PERT information
+	public void performAndUpdateAllTasks(int time){
+		allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
+		allTaskList.forEach(t -> t.performForExistingModel(time));
+		allTaskList.forEach(t -> t.checkFinishedForExistingModel(time, allTaskList, simNo));
 	}
 
 	public void saveResultFilesInDirectory(String outputDir, String no){
@@ -180,35 +96,19 @@ public class ExistingModel_Simulator {
 			// workflow
 			pw.println();
 			pw.println("Gantt chart of each Task");
-			pw.println(String.join(separator , new String[]{"Workflow", "Task", "Resource Name", "Ready Time", "Start Time", "Finish Time","Ready Time", "Start Time", "Finish Time", "Ready Time","Start Time", "Finish Time"}));
+			pw.println(String.join(separator , new String[]{"Workflow", "Task", "Start Time", "Finish Time", "Start Time", "Finish Time","Start Time", "Finish Time"}));
 			this.workflowList.forEach(w -> {
 				String workflowName = "workflow ID:"+w.getId();
 				w.getTaskList().forEach(t ->{
 					List<String> baseInfo = new ArrayList<String>();
 					baseInfo.add(workflowName);
 					baseInfo.add(t.getName());
-					baseInfo.add(t.getAllocatedResourceList().stream().map(Resource::getName).collect(Collectors.joining("+")));
 					IntStream.range(0, t.getFinishTimeList().size()).forEach(i -> {
-						baseInfo.add(String.valueOf(t.getReadyTimeList().get(i)));
-						baseInfo.add(String.valueOf(t.getStartTimeList().get(i)+1));
-						baseInfo.add(String.valueOf(t.getFinishTimeList().get(i)+1));
+						baseInfo.add(String.valueOf(t.getStartTimeList().get(i)));
+						baseInfo.add(String.valueOf(t.getFinishTimeList().get(i)));
 					});
 					pw.println(String.join(separator ,baseInfo.stream().toArray(String[]::new)));
 				});
-			});
-
-			// resource
-			pw.println();
-			pw.println("Gantt chart of each Resource");
-			pw.println(String.join(separator , new String[]{"Resource Name", "Start Time", "Finish Time"}));
-			this.resourceList.forEach(r ->{
-				List<String> baseInfo = new ArrayList<String>();
-				baseInfo.add(r.getName());
-				IntStream.range(0, r.getAssignedTaskList().size()).forEach(i -> {
-					baseInfo.add(String.valueOf(r.getStartTimeList().get(i)+1));
-					baseInfo.add(String.valueOf(r.getFinishTimeList().get(i)+1));
-				});
-				pw.println(String.join(separator, baseInfo.stream().toArray(String[]::new)));
 			});
 			
 			pw.close();
@@ -228,8 +128,8 @@ public class ExistingModel_Simulator {
 					String taskName = t.getName();
 					for(int i =0;i<t.getStartTimeList().size();i++){
 						count++;
-						String st = Integer.toString(t.getStartTimeList().get(i)+1);
-						String et = Integer.toString(t.getFinishTimeList().get(i)+1);
+						String st = Integer.toString(t.getStartTimeList().get(i)/10);
+						String et = Integer.toString(t.getFinishTimeList().get(i)/10);
 						Double rc = t.getResourceCapacityLog().get(i);
 						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
 						try {

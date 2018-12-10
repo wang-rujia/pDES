@@ -52,13 +52,6 @@ public class Workflow{
 		checkReady(0);
 	}
 	
-	public void initializeForExistingModel(int simNo) {
-		taskList.forEach(t -> t.initializeForExistingModel(simNo));
-		criticalPathLength = 0;
-		updatePERTData(0);
-		checkReady(0);
-	}
-	
 	public void updatePERTData(int time) {
 		setEstEftData(time);
 		setLstLftData();
@@ -200,16 +193,8 @@ public class Workflow{
 		taskList.forEach(t -> t.checkFinished(time));
 	}
 	
-	public void checkFinishedForExistingModel(int time, List<Task> allTaskList) {
-		taskList.forEach(t -> t.checkFinishedForExistingModel(time,allTaskList));
-	}
-	
 	public void perform(int time, List<Task> allTask) {
 		taskList.forEach(t -> t.perform(time, allTask));
-	}
-	
-	public void performForExistingModel(int time) {
-		taskList.forEach(t -> t.performForExistingModel(time));
 	}
 	
 	public List<Task> getTaskList(){
