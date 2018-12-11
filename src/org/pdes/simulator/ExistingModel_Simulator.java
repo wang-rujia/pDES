@@ -125,8 +125,8 @@ public class ExistingModel_Simulator {
 					String taskName = t.getName();
 					for(int i =0;i<t.getFinishTimeList().size();i++){
 						count++;
-						String st = Integer.toString(t.getStartTimeList().get(i)/100);
-						String et = Integer.toString(t.getFinishTimeList().get(i)/100);
+						String st = Integer.toString(t.getStartTimeList().get(i)/10);
+						String et = Integer.toString(t.getFinishTimeList().get(i)/10);
 						Double rc = t.getResourceCapacityLog().get(i);
 						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
 						try {

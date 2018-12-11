@@ -156,6 +156,10 @@ public class Task {
 	}
 	
 	public void checkPermissionForExistingModel(int time) {
+		if (isFinished() && remainingWorkAmount > 0){
+			state = TaskState.NONE;
+			stateInt = 0;
+		}
 		if (isNone() && inputTaskList.stream().allMatch(t -> t.isFinished())) {
 			state = TaskState.WORKING;
 			stateInt = 2;
@@ -268,7 +272,7 @@ public class Task {
 						if(FromTask.remainingWorkAmount>FromTask.defaultWorkAmount) FromTask.remainingWorkAmount = FromTask.defaultWorkAmount*0.9;
 						FromTask.actualWorkAmount=FromTask.defaultWorkAmount-FromTask.remainingWorkAmount;
 						delta = FromTask.remainingWorkAmount-delta;
-						System.out.println(simNo+"[B]Rework From ["+this.name+"]to["+From+"], add duration: "+delta);
+						System.out.println("  "+simNo+"[B]Rework From ["+this.name+"]to["+From+"], add duration: "+delta);
 						FromTask.reworkFlag=true;
 						if(FromTask.isFinished()) FromTask.setNone();
 						for(String From2:FromTask.rework.getFromList()){
