@@ -328,7 +328,7 @@ public class Task {
 			actualWorkAmount +=workAmount;
 			remainingWorkAmount -= workAmount;
 			if(minimumWorkAmount.size()>=o){
-				progress = actualWorkAmount/minimumWorkAmount.get(this.o);
+				progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(this.o)*10)/10;
 			}else{
 				for(int j=o-1;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
