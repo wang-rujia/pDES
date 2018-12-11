@@ -2,6 +2,7 @@ package org.pdes.rcp.actions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,7 +71,8 @@ public class MultiRun_ExistingModel extends AbstractSimulationAction{
 		@Override
 		public String call() throws Exception {
 			ProjectInfo project = new ProjectInfo(diagram, numOfWorkflow);
-			ExistingModel_Simulator sim = new ExistingModel_Simulator(project,no);
+			Random rand = new Random();
+			ExistingModel_Simulator sim = new ExistingModel_Simulator(project,no,rand);
 			sim.execute();
 			sim.saveResultFilesInDirectory(outputDirectoryPath, String.valueOf(no));
 			return String.format("%d,%f,%d,%f", no, project.getTotalCost(), project.getDuration(),project.getTotalActualWorkAmount());

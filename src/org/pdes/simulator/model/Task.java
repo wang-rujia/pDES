@@ -106,12 +106,12 @@ public class Task {
 		stateInt = 0;
 	}
 	
-	public void initializeForExistingModel(int simNo) {
+	public void initializeForExistingModel(int simNo, Random rand) {
 		est = 0;
 		eft = 0;
 		lst = 0;
 		lft = 0;
-		defaultWorkAmount = generateDuration(minimumWorkAmount.get(1),minimumWorkAmount.get(2),minimumWorkAmount.get(3),simNo);
+		defaultWorkAmount = generateDuration(minimumWorkAmount.get(1),minimumWorkAmount.get(2),minimumWorkAmount.get(3),simNo,rand);
 		actualWorkAmount = 0;
 		remainingWorkAmount = defaultWorkAmount;
 		state = TaskState.NONE;
@@ -605,21 +605,27 @@ public class Task {
 		return this.defaultWorkAmount;
 	}
 	
-	public double generateDuration(double a,double c,double b,int simNo){
-		Random r = new Random();
-		double p=r.nextDouble();
-		double x1 = Math.pow(p*(c-a)*(b-a), 0.5)+a;
-		double x2 = b-Math.pow((1-p)*(b-a)*(b-c), 0.5);
-		if(x1>a && x1<c){
-			return x1;
+	public double generateDuration(double a,double c,double b,int simNo, Random rand){
+		double p=rand.nextDouble();
+		double F = (c-a) /(b-a);
+		if(p<F){
+			return a+Math.sqrt(p *(b-a)*(c-a));
+		}else{
+			return b-Math.sqrt((1-p)*(b-a)*(b-c));
 		}
-		else if(x2>c && x2<b){
-			return x2;
-		}
-		else{
-			System.out.println("wrong triangle");
-			return 0;
-		}
+		
+		//double x1 = Math.pow(p*(c-a)*(b-a), 0.5)+a;
+		//double x2 = b-Math.pow((1-p)*(b-a)*(b-c), 0.5);
+		//if(x1>a && x1<c){
+		//	return x1;
+		//}
+		//else if(x2>c && x2<b){
+		//	return x2;
+		//}
+		//else{
+		//	System.out.println("wrong triangle");
+		//	return 0;
+		//}
 	}
 	
 	public boolean ifDependentTask(String task){

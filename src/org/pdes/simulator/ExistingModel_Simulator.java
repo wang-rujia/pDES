@@ -9,6 +9,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.IntStream;
 import org.pdes.simulator.model.ProjectInfo;
 import org.pdes.simulator.model.Task;
@@ -22,8 +23,9 @@ public class ExistingModel_Simulator {
 	protected int time = 0;
 	private int count=0;
 	private int simNo;
+	private Random rand;
 	
-	public ExistingModel_Simulator(ProjectInfo project,int no) {
+	public ExistingModel_Simulator(ProjectInfo project,int no, Random rand) {
 		this.project=project;
 		this.workflowList=project.getWorkflowList_child();
 		this.allTaskList = workflowList.stream()
@@ -32,11 +34,12 @@ public class ExistingModel_Simulator {
 									(l, t) -> l.addAll(t),
 									(l1, l2) -> l1.addAll(l2)
 									);
+		this.rand=rand;
 		this.simNo=no;
 	}
 	
 	public void execute() {
-		this.initialize(simNo);
+		this.initialize(simNo,rand);
 		sortTasks();
 		while(true){
 			allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
@@ -55,9 +58,9 @@ public class ExistingModel_Simulator {
 		});
 	}
 	
-	public void initialize(int simNo){
+	public void initialize(int simNo,Random rand){
 		this.time = 1;
-		allTaskList.forEach(t -> t.initializeForExistingModel(simNo));
+		allTaskList.forEach(t -> t.initializeForExistingModel(simNo, rand));
 		this.sortTasks();
 	}
 
