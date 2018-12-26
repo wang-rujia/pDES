@@ -25,6 +25,13 @@ public class Rework {
 		From.add(d);
 	}
 	
+	public void clear(){
+		o.clear();
+		progress.clear();
+		possibility.clear();
+		From.clear();
+	}
+	
 	public void removeValue(int a, double b, double c, String d){
 		for(int i=0;i<this.getSize();i++){
 			if(o.get(i)==a && progress.get(i)==b && possibility.get(i)==c && From.get(i).equals(d)){

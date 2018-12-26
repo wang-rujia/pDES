@@ -39,6 +39,7 @@ import org.pdes.rcp.actions.MultiRun_ExistingModel;
 import org.pdes.rcp.actions.NewProjectFileAction;
 import org.pdes.rcp.actions.OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkerAction;
 import org.pdes.rcp.actions.OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkersAction;
+import org.pdes.rcp.actions.OpenParameterFileAction;
 import org.pdes.rcp.actions.OneRunPDES_BasicSimulator_TaskPerformedByMultiTaskWorkersAction;
 import org.pdes.rcp.actions.OpenProjectFileAction;
 import org.pdes.rcp.actions.SaveAsFileAction;
@@ -54,6 +55,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 	private SaveFileAction save = new SaveFileAction();
 	private SaveAsFileAction saveAs = new SaveAsFileAction();
 	private OpenProjectFileAction open = new OpenProjectFileAction();
+	private OpenParameterFileAction openParameter= new OpenParameterFileAction();
 	private OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkerAction basicSimSingleTaskWorker = new OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkerAction();
 	private OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkersAction basicSimSingleTaskWorkers = new OneRunPDES_BasicSimulator_TaskPerformedBySingleTaskWorkersAction();
 	private OneRunPDES_BasicSimulator_TaskPerformedByMultiTaskWorkersAction basicSimMultiTaskWorker = new OneRunPDES_BasicSimulator_TaskPerformedByMultiTaskWorkersAction();
@@ -93,6 +95,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		fileMenu.add(open);
 		fileMenu.add(save);
 		fileMenu.add(saveAs);
+		fileMenu.add(openParameter);
 		
 		MenuManager simulationMenu = new MenuManager("Simulation","Simulation");
 		menuBar.add(simulationMenu);

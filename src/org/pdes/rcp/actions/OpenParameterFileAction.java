@@ -1,15 +1,19 @@
 package org.pdes.rcp.actions;
 
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
-import org.pdes.rcp.view.editor.ProjectEditorInput;
+import org.eclipse.ui.console.MessageConsoleStream;
+import org.pdes.rcp.core.Activator;
+import org.pdes.rcp.model.ProjectDiagram;
+import org.pdes.rcp.view.editor.ProjectEditor;
 
 public class OpenParameterFileAction extends Action{
+	
+	protected final MessageConsoleStream msgStream = Activator.getDefault().getMsgStream();
 	
 	public OpenParameterFileAction(){
 		setToolTipText("Open extracted parameter file");
@@ -18,15 +22,21 @@ public class OpenParameterFileAction extends Action{
 	
 	public void run() {
 		String filePath = openFileDialog();
-		if(filePath!=null){
+		if(filePath!=null){			
+			//Check whether Project is opened or not.
+			IWorkbench ib = PlatformUI.getWorkbench();
+			ProjectEditor pe = (ProjectEditor) ib.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+			if(pe == null){
+				MessageDialog.openError(ib.getActiveWorkbenchWindow().getShell(), "Error", "Project is not opened.");
+				return;
+			}
+			//if opened file is xml, then read parameter file
 			String ext = filePath.substring(filePath.length()-3, filePath.length());
 			if(ext.equals("xml")){
-				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				IEditorInput input= new ProjectEditorInput(filePath);
-				try{
-					page.openEditor(input, "pDES.ParameterEditor");
-				}catch(PartInitException e){
-					e.printStackTrace();
+				if(((ProjectDiagram)pe.getDiagram()).readParameterFile(filePath)){
+					msgStream.println("parameter file has been read");
+				}else{
+					msgStream.println("error when read parameter file");
 				}
 			}
 		}

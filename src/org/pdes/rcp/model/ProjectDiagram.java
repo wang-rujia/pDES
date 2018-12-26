@@ -416,6 +416,90 @@ public class ProjectDiagram extends Diagram {
 	}
 	
 	
+	public boolean readParameterFile(String filePath) {
+		Document xml = null;
+		String tagName="";
+		String value="";
+		try{
+			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			xml = builder.parse(new FileInputStream(new File(filePath)));
+			NodeList nodeList = xml.getElementsByTagName("TaskNode");
+			for(int i=0;i<nodeList.getLength();i++){
+				Node node = nodeList.item(i);
+				NodeList tags = node.getChildNodes();
+				
+				List<TaskNode> taskNodes = this.getTaskNodeList();
+				TaskNode t=null;
+				
+				for(TaskNode tn: taskNodes){
+					for(int j=0;j<tags.getLength();j++){
+						Node tag = tags.item(j);
+						if(tags.item(0).getNodeName()==null||tag.getNodeName().equals("#text")){
+						}else{
+							if(tn.getName().equals(tag.getFirstChild().getNodeValue())){
+								t=tn;
+								t.clearAllParameters();
+								break;
+							}
+						}
+					}
+				}
+				
+				for(int j=0;j<tags.getLength();j++){
+					Node tag = tags.item(j);
+					if(tag.getNodeName()==null||tag.getNodeName().equals("#text") || t==null ){
+					}else{
+						tagName = tag.getNodeName();
+						value = tag.getFirstChild().getNodeValue();
+						if(tagName.equals("Name")){
+						}
+						else if(tagName.equals("MinimumWorkAmount")){
+							String[] a = value.split(",");
+							t.addMinimumWorkAmount(Integer.parseInt(a[0]), Double.parseDouble(a[1]));
+						}
+						else if(tagName.equals("Delay")){
+							String[] a = value.split(",");
+							t.addDelayInfo(Integer.parseInt(a[0]), Double.parseDouble(a[1]), Integer.parseInt(a[2]));
+						}
+						else if(tagName.equals("Rework")){
+							String[] a = value.split(",");
+							t.addReworkInfo(Integer.parseInt(a[0]), Double.parseDouble(a[1]), Double.parseDouble(a[2]), a[3]);
+						}
+					}
+				}
+				
+			}
+				/*
+				if(task!=null){
+					if(nameOfTask.getNodeName()!=null && !nameOfTask.getNodeName().equals("#text")){
+						for(int j=1;j<tags.getLength();j++){
+							Node tag = tags.item(j);
+							tagName = tag.getNodeName();
+							value = tag.getFirstChild().getNodeValue();
+							if(tagName.equals("MinimumWorkAmount")){
+								String[] a = value.split(",");
+								task.addMinimumWorkAmount(Integer.parseInt(a[0]), Double.parseDouble(a[1]));
+							}
+							else if(tagName.equals("Delay")){
+								String[] a = value.split(",");
+								task.addDelayInfo(Integer.parseInt(a[0]), Double.parseDouble(a[1]), Integer.parseInt(a[2]));
+							}
+							else if(tagName.equals("Rework")){
+								String[] a = value.split(",");
+								task.addReworkInfo(Integer.parseInt(a[0]), Double.parseDouble(a[1]), Double.parseDouble(a[2]), a[3]);
+								System.out.println(task.getName()+","+task.getRework().getSize());
+							}
+						}
+					}
+				}
+				*/
+		}catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Set Resource(Worker, Facility) list in TeamNode.
 	 * @param team

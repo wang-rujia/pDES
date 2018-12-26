@@ -189,6 +189,17 @@ public class TaskNode extends NodeElement {
 		delay.removeValue(a, b, c);
 	}
 	
+	public void deleteMinimumWorkAmountInfo(int i){
+		minimumWorkAmountMap.remove(i);
+	}
+	
+	public void clearAllParameters(){
+		minimumWorkAmountMap.clear();
+		delay.clear();
+		rework.clear();
+	}
+	
+	
 	public Map<Integer,Double> getMinimumWorkAmountMap(){
 		return this.minimumWorkAmountMap;
 	}
@@ -201,8 +212,6 @@ public class TaskNode extends NodeElement {
 		return this.delay;
 	}
 	
-	public void deleteMinimumWorkAmountInfo(int i){
-		minimumWorkAmountMap.remove(i);
-	}
+
 	
 }

@@ -17,6 +17,12 @@ public class Delay {
 		awa = new ArrayList<Integer>();
 	}
 	
+	public void clear(){
+		o.clear();
+		possibility.clear();
+		awa.clear();
+	}
+	
 	public void addNewValue(int a, double b, int c){
 		o.add(a);
 		possibility.add(b);
