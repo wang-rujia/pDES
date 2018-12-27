@@ -21,6 +21,7 @@ public class ExistingModel_Simulator {
 	protected List<Workflow> workflowList;
 	protected List<Task> allTaskList;
 	protected int time = 0;
+	protected int timestep=0;
 	private int count=0;
 	private int simNo;
 	private Random rand;
@@ -41,44 +42,75 @@ public class ExistingModel_Simulator {
 	public void execute() {
 		this.initialize(simNo,rand);
 		sortTasks();
+		List<Task> workingTaskList = new ArrayList<Task>();
+		List<Task> finishedTaskList = new ArrayList<Task>();
 		while(true){
-			setWorkingStatus();
-			allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
-			allTaskList.forEach(t -> t.performForExistingModel(time));
-			//allTaskList.forEach(t -> t.checkFinishedForExistingModel(time, allTaskList, simNo));
-			setRework();
-			allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
-			if(checkAllTasksAreFinished()) return;
-			time++;
+			//A.set active tasks and add start time
+			for(Task t:allTaskList) t.setWnFalse();
+			workingTaskList = getWorkingTaskList();
+			for(Task t:workingTaskList){
+				t.setWnTrue();
+				if(!t.getStartTimeAdded()){
+					t.setStartTimeAddedTrue();
+					t.addStartTime(time);
+				}
+			}
+			
+			//B.calculate time step
+			timestep=100000;
+			for(Task t:workingTaskList) if(t.getRemainingWorkAmount()+1 < timestep) timestep = (int)t.getRemainingWorkAmount()+1;
+			
+			//C. work on active tasks; add finish time; make finished task list
+			time += timestep;
+			workingTaskList.forEach(t -> t.performForExistingModel(timestep));
+			finishedTaskList.clear();
+			for(Task t:workingTaskList){
+				if(t.getRemainingWorkAmount() <=0 ){
+					t.setRemainingWorkAmountZero();
+					finishedTaskList.add(t);
+					if(t.getStartTimeAdded()){
+						t.addFinishTime(time);
+						t.addResourceCapacityLog(1);
+						t.setStartTimeAddedFalse();
+					}
+				}
+			}
+			
+			//D. check for rework for completed tasks
+			setRework(finishedTaskList);
+
+			if(checkFinishedForExistingModel()) return;
 		}
 	}
 	
-	public void setRework(){
-		//1.get completed activity list
-		List<Task> finishedTaskList = new ArrayList<Task>();
-		for(Task t: allTaskList) if(t.isFinished()) finishedTaskList.add(t);
-		//2.set rework for each finished task
+	public boolean checkFinishedForExistingModel(){
+		for(Task t: allTaskList){
+			if(t.getRemainingWorkAmount()>0) return false;
+		}
+		return true;
+	}
+	
+	public void setRework(List<Task> finishedTaskList){
 		finishedTaskList.forEach(t -> t.checkReworkForExistingModel(allTaskList));
 	}
 	
-	public void setWorkingStatus(){
-		//1. set all WN=FALSE
-		allTaskList.forEach(t -> t.setWNFalseForExistingModel());
-		//2. Find the most upstream activity and its concurrent activity
+	public List<Task> getWorkingTaskList(){
+		List<Task> workingTaskList = new ArrayList<Task>();
 		for(int i=0;i<allTaskList.size();i++){
 			if(allTaskList.get(i).getRemainingWorkAmount()>0){
-				allTaskList.get(i).setWNTrueForExistingModel();
+				workingTaskList.add(allTaskList.get(i));
 				for(int j=i+1;j<allTaskList.size();j++){
-					if(allTaskList.get(j).getRemainingWorkAmount()>0 && allTaskList.get(j).allInputTaskFinished()){
-						allTaskList.get(j).setWNTrueForExistingModel();
+					if(allTaskList.get(j).getRemainingWorkAmount()>0 && allTaskList.get(j).checkInputForExistingModel()){
+						workingTaskList.add(allTaskList.get(j));
 						break;
 					}else{
-						if(!allTaskList.get(j).isFinished()) break;
+						if(allTaskList.get(j).getRemainingWorkAmount() > 0) break;
 					}
 				}
 				break;
 			}
 		}
+		return workingTaskList;
 	}
 	
 	public void sortTasks(){
@@ -90,9 +122,8 @@ public class ExistingModel_Simulator {
 	}
 	
 	public void initialize(int simNo,Random rand){
-		this.time = 1;
+		time = 0;
 		allTaskList.forEach(t -> t.initializeForExistingModel(simNo, rand));
-		this.sortTasks();
 	}
 
 	public boolean checkAllTasksAreFinished(){
