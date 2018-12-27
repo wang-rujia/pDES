@@ -42,11 +42,42 @@ public class ExistingModel_Simulator {
 		this.initialize(simNo,rand);
 		sortTasks();
 		while(true){
+			setWorkingStatus();
 			allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
 			allTaskList.forEach(t -> t.performForExistingModel(time));
-			allTaskList.forEach(t -> t.checkFinishedForExistingModel(time, allTaskList, simNo));
+			//allTaskList.forEach(t -> t.checkFinishedForExistingModel(time, allTaskList, simNo));
+			setRework();
+			allTaskList.forEach(t -> t.checkPermissionForExistingModel(time));
 			if(checkAllTasksAreFinished()) return;
 			time++;
+		}
+	}
+	
+	public void setRework(){
+		//1.get completed activity list
+		List<Task> finishedTaskList = new ArrayList<Task>();
+		for(Task t: allTaskList) if(t.isFinished()) finishedTaskList.add(t);
+		//2.set rework for each finished task
+		finishedTaskList.forEach(t -> t.checkReworkForExistingModel(allTaskList));
+	}
+	
+	public void setWorkingStatus(){
+		//1. set all WN=FALSE
+		allTaskList.forEach(t -> t.setWNFalseForExistingModel());
+		//2. Find the most upstream activity and its concurrent activity
+		for(int i=0;i<allTaskList.size();i++){
+			if(allTaskList.get(i).getRemainingWorkAmount()>0){
+				allTaskList.get(i).setWNTrueForExistingModel();
+				for(int j=i+1;j<allTaskList.size();j++){
+					if(allTaskList.get(j).getRemainingWorkAmount()>0 && allTaskList.get(j).allInputTaskFinished()){
+						allTaskList.get(j).setWNTrueForExistingModel();
+						break;
+					}else{
+						if(!allTaskList.get(j).isFinished()) break;
+					}
+				}
+				break;
+			}
 		}
 	}
 	

@@ -113,4 +113,18 @@ public class Rework {
 		}
 		return null;
 	}
+	
+	public double getDSMValueforExistingModel(String n){
+		for(int i=0;i<o.size();i++){
+			if(From.get(i).equals(n)) return progress.get(i);
+		}
+		return 0.0;
+	}
+	
+	public double getDSM2ValueForExistingModel(String n){
+		for(int i=0;i<o.size();i++){
+			if(From.get(i).equals(n)) return possibility.get(i);
+		}
+		return 0.0;
+	}
 }

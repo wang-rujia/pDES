@@ -66,6 +66,7 @@ public class Task {
 	private Delay delay;
 	private double defaultWorkAmount;
 	private boolean reworkFlag=false;
+	private boolean wn=false;
 	
 	// Changeable variable on simulation
 	private int o = 1; //occurrence time
@@ -107,15 +108,12 @@ public class Task {
 	}
 	
 	public void initializeForExistingModel(int simNo, Random rand) {
-		est = 0;
-		eft = 0;
-		lst = 0;
-		lft = 0;
 		defaultWorkAmount = generateDuration(minimumWorkAmount.get(1),minimumWorkAmount.get(2),minimumWorkAmount.get(3),simNo,rand);
 		actualWorkAmount = 0;
 		remainingWorkAmount = defaultWorkAmount;
 		state = TaskState.NONE;
 		stateInt = 0;
+		wn=false;
 	}
 	
 	/**
@@ -156,21 +154,41 @@ public class Task {
 	}
 	
 	public void checkPermissionForExistingModel(int time) {
-		if (isFinished() && remainingWorkAmount > 0){
-			state = TaskState.NONE;
-			stateInt = 0;
-		}
-		if (isNone() && inputTaskList.stream().allMatch(t -> t.isFinished())) {
+		//active task
+		if(wn){
 			state = TaskState.WORKING;
 			stateInt = 2;
 			addStartTime(time);
 		}
+		//rework task (remaining work amount has been added)
+		if (isFinished() && remainingWorkAmount > 0){
+			state = TaskState.NONE;
+			stateInt = 0;
+		}
+		//stop due to dependency
 		if (isWorking() && !inputTaskList.stream().allMatch(t -> t.isFinished())){
 			state = TaskState.NONE;
 			stateInt = 0;
 			addResourceCapacityLog(1);
 			addFinishTime(time);
 		}
+		//check finished tasks
+		if (isWorking() && remainingWorkAmount <=0){
+			addFinishTime(time);
+			remainingWorkAmount = 0;
+			state = TaskState.FINISHED;
+			stateInt = 4;
+			addResourceCapacityLog(1);
+		}
+		
+		/*
+		if (isNone() && inputTaskList.stream().allMatch(t -> t.isFinished())) {
+			state = TaskState.WORKING;
+			stateInt = 2;
+			addStartTime(time);
+		}
+		*/
+		
 	}
 	
 	/**
@@ -323,6 +341,43 @@ public class Task {
 									if(delta>0.0001) System.out.println("  "+simNo+"[F]Rework From ["+FromTask.name+"]to["+From2+"], add duration: "+delta);
 									FromTask2.actualWorkAmount=FromTask2.defaultWorkAmount-FromTask2.remainingWorkAmount;
 								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void checkReworkForExistingModel(List<Task> allTaskList){
+		//if rework happends, add additional work amount onto remaining work amount,
+		//so that the status will be judged to be NONE at the end of current time step.
+		//(no status change in this method)
+		Random rand1 = new Random();
+		Random rand2 = new Random();
+		Double p = 0.0;
+		Double p2 = 0.0;
+		Double additionalWorkAmount = 0.0;
+		// look up from j
+		for(int i=0; i< allTaskList.indexOf(this);i++){
+			String taskName = allTaskList.get(i).getName();
+			p = rework.getDSMValueforExistingModel(taskName);
+			if(rand1.nextDouble() < p){
+				additionalWorkAmount = rework.getDSM2ValueForExistingModel(taskName) * allTaskList.get(i).getDefaultWorkAmount() * allTaskList.get(i).minimumWorkAmount.get(4);
+				allTaskList.get(i).remainingWorkAmount += additionalWorkAmount;
+				if(allTaskList.get(i).remainingWorkAmount>allTaskList.get(i).defaultWorkAmount){
+					allTaskList.get(i).remainingWorkAmount = allTaskList.get(i).defaultWorkAmount * 0.9;
+				}
+				//look down from i
+				for(int k = i + 1; k< allTaskList.size(); k++){ 
+					if(allTaskList.get(k).remainingWorkAmount < allTaskList.get(k).defaultWorkAmount){
+						String taskName2 = allTaskList.get(k).getName();
+						p2 = allTaskList.get(i).rework.getDSMValueforExistingModel(taskName2);
+						if(rand2.nextDouble() < p2){
+							additionalWorkAmount = allTaskList.get(i).rework.getDSM2ValueForExistingModel(taskName2) * allTaskList.get(k).getDefaultWorkAmount() * allTaskList.get(k).minimumWorkAmount.get(4);
+							allTaskList.get(k).remainingWorkAmount += additionalWorkAmount;
+							if(allTaskList.get(k).remainingWorkAmount>allTaskList.get(k).defaultWorkAmount){
+								allTaskList.get(k).remainingWorkAmount = allTaskList.get(k).defaultWorkAmount * 0.9;
 							}
 						}
 					}
@@ -679,6 +734,17 @@ public class Task {
 		this.state=TaskState.NONE;
 		this.stateInt=0;
 	}
+	
+	public void setWNTrueForExistingModel(){
+		wn=true;
+	}
 
+	public void setWNFalseForExistingModel(){
+		wn=false;
+	}
+	
+	public boolean allInputTaskFinished(){
+		return inputTaskList.stream().allMatch(t -> t.isFinished());
+	}
 
 }
