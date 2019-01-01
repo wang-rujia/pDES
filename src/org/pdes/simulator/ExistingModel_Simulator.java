@@ -70,8 +70,14 @@ public class ExistingModel_Simulator {
 					finishedTaskList.add(t);
 					if(t.getStartTimeAdded()){
 						t.addFinishTime(time);
+						if(t.getReworkFrom().equals("none")){
+							t.addReworkFromLog("None");
+						}else{
+							t.addReworkFromLog(t.getReworkFrom());
+						}
 						t.addResourceCapacityLog(1);
 						t.setStartTimeAddedFalse();
+						t.setReworkFrom("none");
 					}
 				}
 			}
@@ -104,7 +110,9 @@ public class ExistingModel_Simulator {
 						workingTaskList.add(allTaskList.get(j));
 						break;
 					}else{
-						if(allTaskList.get(j).getRemainingWorkAmount() > 0) break;
+						if(allTaskList.get(j).getRemainingWorkAmount() > 0){
+							break;
+						}
 					}
 				}
 				break;
@@ -193,7 +201,8 @@ public class ExistingModel_Simulator {
 						String st = Integer.toString(t.getStartTimeList().get(i)/10);
 						String et = Integer.toString(t.getFinishTimeList().get(i)/10);
 						Double rc = t.getResourceCapacityLog().get(i);
-						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
+						String rw = t.getReworkFromLog().get(i);
+						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,"+rw;
 						try {
 							bw.write(log);
 							bw.newLine();

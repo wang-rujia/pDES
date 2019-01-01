@@ -69,6 +69,8 @@ public class Task {
 	
 	private boolean wn=false;
 	private boolean startTimeAdded=false;
+	private List<String> reworkFromLog = new ArrayList<String>();
+	private String reworkFrom = "none";
 	
 	// Changeable variable on simulation
 	private int o = 1; //occurrence time
@@ -324,9 +326,10 @@ public class Task {
 			String taskName = allTaskList.get(i).getName();
 			p = rework.getDSMValueforExistingModel(taskName);
 			if(rand1.nextDouble() < p){
+				this.reworkFrom = allTaskList.get(i).getName();
 				additionalWorkAmount = rework.getDSM2ValueForExistingModel(taskName) * allTaskList.get(i).getDefaultWorkAmount() * allTaskList.get(i).minimumWorkAmount.get(4);
 				allTaskList.get(i).remainingWorkAmount += additionalWorkAmount;
-				System.out.println("UP:"+"Rework From ["+this.name+"]to["+allTaskList.get(i).getName()+"], add duration: "+additionalWorkAmount);
+				//System.out.println("UP:"+"Rework From ["+this.name+"]to["+allTaskList.get(i).getName()+"], add duration: "+additionalWorkAmount);
 				if(allTaskList.get(i).remainingWorkAmount>allTaskList.get(i).defaultWorkAmount){
 					allTaskList.get(i).remainingWorkAmount = allTaskList.get(i).defaultWorkAmount * 0.9;
 				}
@@ -649,6 +652,14 @@ public class Task {
 		this.resourceCapacityLog.add(a);
 	}
 	
+	public List<String> getReworkFromLog(){
+		return this.reworkFromLog;
+	}
+	
+	public void addReworkFromLog(String a){
+		this.reworkFromLog.add(a);
+	}
+	
 	public double getDefaultWorkAmount(){
 		return this.defaultWorkAmount;
 	}
@@ -733,6 +744,14 @@ public class Task {
 	
 	public void setRemainingWorkAmountZero(){
 		remainingWorkAmount=0;
+	}
+	
+	public String getReworkFrom(){
+		return this.reworkFrom;
+	}
+	
+	public void setReworkFrom(String a){
+		this.reworkFrom="none";
 	}
 
 }
