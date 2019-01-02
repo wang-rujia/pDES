@@ -47,7 +47,23 @@ public class ExistingModel_Simulator {
 		while(true){
 			//A.set active tasks and add start time
 			for(Task t:allTaskList) t.setWnFalse();
-			workingTaskList = getWorkingTaskList();
+			workingTaskList.clear();
+			for(int i=0;i<allTaskList.size();i++){
+				if(allTaskList.get(i).getRemainingWorkAmount()>0){
+					workingTaskList.add(allTaskList.get(i));
+					for(int j=i+1;j<allTaskList.size();j++){
+						if(allTaskList.get(j).getRemainingWorkAmount()>0 && allTaskList.get(j).checkInputForExistingModel()){
+							workingTaskList.add(allTaskList.get(j));
+							break;
+						}else{
+							if(allTaskList.get(j).getRemainingWorkAmount() > 0){
+								break;
+							}
+						}
+					}
+					break;
+				}
+			}
 			for(Task t:workingTaskList){
 				t.setWnTrue();
 				if(!t.getStartTimeAdded()){
@@ -84,6 +100,16 @@ public class ExistingModel_Simulator {
 			
 			//D. check for rework for completed tasks
 			setRework(finishedTaskList);
+			for(Task t: workingTaskList){
+				if(t.getRemainingWorkAmount()>0 && !t.checkInputForExistingModel()){
+					if(t.getStartTimeAdded()) {
+						t.addReworkFromLog("Stop");
+						t.addFinishTime(time);
+						t.addResourceCapacityLog(1);
+						t.setStartTimeAddedFalse();
+					}
+				}
+			}
 
 			if(checkFinishedForExistingModel()) return;
 		}
@@ -99,27 +125,7 @@ public class ExistingModel_Simulator {
 	public void setRework(List<Task> finishedTaskList){
 		finishedTaskList.forEach(t -> t.checkReworkForExistingModel(allTaskList));
 	}
-	
-	public List<Task> getWorkingTaskList(){
-		List<Task> workingTaskList = new ArrayList<Task>();
-		for(int i=0;i<allTaskList.size();i++){
-			if(allTaskList.get(i).getRemainingWorkAmount()>0){
-				workingTaskList.add(allTaskList.get(i));
-				for(int j=i+1;j<allTaskList.size();j++){
-					if(allTaskList.get(j).getRemainingWorkAmount()>0 && allTaskList.get(j).checkInputForExistingModel()){
-						workingTaskList.add(allTaskList.get(j));
-						break;
-					}else{
-						if(allTaskList.get(j).getRemainingWorkAmount() > 0){
-							break;
-						}
-					}
-				}
-				break;
-			}
-		}
-		return workingTaskList;
-	}
+
 	
 	public void sortTasks(){
 		allTaskList.sort((t1, t2) -> {
