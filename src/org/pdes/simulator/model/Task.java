@@ -390,9 +390,10 @@ public class Task {
 				}
 			}
 
-			if(progress>=0){
+	//		if(progress>=0){
 				Random rand = new Random();
 				Double p = rand.nextDouble();
+				if(progress<0) System.out.println(rework.getReworkMap(o, progress));
 				Map<Double, String> reworkMap = rework.getReworkMap(o, progress);
 				for(Double pSum : reworkMap.keySet()){
 					if(p<pSum){
@@ -408,7 +409,7 @@ public class Task {
 					break;
 					}
 				}
-			}
+	//		}
 		}
 	}
 	
@@ -751,7 +752,7 @@ public class Task {
 	}
 	
 	public void setReworkFrom(String a){
-		this.reworkFrom="none";
+		this.reworkFrom=a;
 	}
 
 }

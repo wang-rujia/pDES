@@ -84,22 +84,24 @@ public class ExistingModel_Simulator {
 				if(t.getRemainingWorkAmount() <=0 ){
 					t.setRemainingWorkAmountZero();
 					finishedTaskList.add(t);
-					if(t.getStartTimeAdded()){
-						t.addFinishTime(time);
-						if(t.getReworkFrom().equals("none")){
-							t.addReworkFromLog("None");
-						}else{
-							t.addReworkFromLog(t.getReworkFrom());
-						}
-						t.addResourceCapacityLog(1);
-						t.setStartTimeAddedFalse();
-						t.setReworkFrom("none");
-					}
 				}
 			}
 			
 			//D. check for rework for completed tasks
 			setRework(finishedTaskList);
+			for(Task t:finishedTaskList){
+				if(t.getReworkFrom().equals("none")){
+					t.addReworkFromLog("None");
+				}else{
+					t.addReworkFromLog(t.getReworkFrom());
+				}
+				if(t.getStartTimeAdded()){
+					t.addResourceCapacityLog(1);
+					t.setStartTimeAddedFalse();
+					t.setReworkFrom("none");
+					t.addFinishTime(time);
+				}
+			}
 			for(Task t: workingTaskList){
 				if(t.getRemainingWorkAmount()>0 && !t.checkInputForExistingModel()){
 					if(t.getStartTimeAdded()) {
