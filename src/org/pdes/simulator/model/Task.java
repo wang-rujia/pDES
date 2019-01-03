@@ -326,7 +326,12 @@ public class Task {
 			String taskName = allTaskList.get(i).getName();
 			p = rework.getDSMValueforExistingModel(taskName);
 			if(rand1.nextDouble() < p){
-				this.reworkFrom = allTaskList.get(i).getName();
+//				this.reworkFrom = allTaskList.get(i).getName();
+				if(reworkFrom.equals("none")){
+					this.reworkFrom=taskName; 
+				}else{
+					this.addReworkFrom(taskName);
+				}
 				additionalWorkAmount = rework.getDSM2ValueForExistingModel(taskName) * allTaskList.get(i).getDefaultWorkAmount() * allTaskList.get(i).minimumWorkAmount.get(4);
 				allTaskList.get(i).remainingWorkAmount += additionalWorkAmount;
 				//System.out.println("UP:"+"Rework From ["+this.name+"]to["+allTaskList.get(i).getName()+"], add duration: "+additionalWorkAmount);
@@ -380,7 +385,7 @@ public class Task {
 				for(int j=o-1;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
 						if(minimumWorkAmount.get(j)>0){
-							System.out.println("cannot find correct minimum work amount:"+this.o+", using mwa("+j+")");
+//							System.out.println("cannot find correct minimum work amount:"+this.o+", using mwa("+j+")");
 							progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(j)*10)/10;
 							break;
 						}else{
@@ -445,7 +450,7 @@ public class Task {
 			}else{
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
-						System.out.println(this.getName()+",cannot find correct minimum work amount:"+oc+", using mwa("+j+")");
+//						System.out.println(this.getName()+",cannot find correct minimum work amount:"+oc+", using mwa("+j+")");
 						remainingWorkAmount = minimumWorkAmount.get(j);
 						progress = actualWorkAmount/minimumWorkAmount.get(j);
 						break;
@@ -753,6 +758,11 @@ public class Task {
 	
 	public void setReworkFrom(String a){
 		this.reworkFrom=a;
+	}
+	
+	public void addReworkFrom(String a){
+		String b = this.reworkFrom;
+		this.reworkFrom = b+";"+a;
 	}
 
 }
