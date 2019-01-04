@@ -769,12 +769,12 @@ public class Task {
 			int i=2;
 			double perSum=0.0;
 			while(minimumWorkAmount.containsKey(i)){
-				perSum += (double)(minimumWorkAmount.get(i)/minimumWorkAmount.get(1));
+				perSum += (double)(minimumWorkAmount.get(i)/minimumWorkAmount.get(i-1));
 				i++;
 			}
 			return (double)(perSum/(i-1));
 		}else{
-			return 0.1;
+			return 0.0;
 		}
 	}
 
