@@ -450,14 +450,13 @@ public class Task {
 			}else{
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
-//						System.out.println(this.getName()+",cannot find correct minimum work amount:"+oc+", using mwa("+j+")");
-						remainingWorkAmount = minimumWorkAmount.get(j);
+						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
+						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						progress = actualWorkAmount/minimumWorkAmount.get(j);
 						break;
 					}
 				}
 			}
-			
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
 			stateInt = 0;
@@ -487,8 +486,8 @@ public class Task {
 			}else{
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
-						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using mwa("+j+")");
-						remainingWorkAmount = minimumWorkAmount.get(j);
+						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
+						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						break;
 					}
 				}
@@ -763,6 +762,20 @@ public class Task {
 	public void addReworkFrom(String a){
 		String b = this.reworkFrom;
 		this.reworkFrom = b+";"+a;
+	}
+	
+	public double calPercent(){
+		if(minimumWorkAmount.size()>1){
+			int i=2;
+			double perSum=0.0;
+			while(minimumWorkAmount.containsKey(i)){
+				perSum += (double)(minimumWorkAmount.get(i)/minimumWorkAmount.get(1));
+				i++;
+			}
+			return (double)(perSum/(i-1));
+		}else{
+			return 0.1;
+		}
 	}
 
 }

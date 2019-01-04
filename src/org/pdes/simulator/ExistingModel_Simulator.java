@@ -149,7 +149,7 @@ public class ExistingModel_Simulator {
 	public void saveResultFilesInDirectory(String outputDir, String no){
 		String fileName = this.getResultFileName(no);//the list of file name
 		this.saveResultFileByCsv(outputDir, fileName+".csv");//1. Gantt chart data by csv format.
-		this.saveResultAsLog(outputDir, "log.txt"); //2. Event log by txt. 
+		this.saveResultAsLog(outputDir, "log.txt",no); //2. Event log by txt. 
 	}
 	
 	private String getResultFileName(String no){
@@ -182,8 +182,8 @@ public class ExistingModel_Simulator {
 					baseInfo.add(workflowName);
 					baseInfo.add(t.getName());
 					IntStream.range(0, t.getFinishTimeList().size()).forEach(i -> {
-						baseInfo.add(String.valueOf("st: "+t.getStartTimeList().get(i)));
-						baseInfo.add(String.valueOf("et: "+t.getFinishTimeList().get(i)));
+						baseInfo.add(String.valueOf("st: "+Math.round(t.getStartTimeList().get(i)/100.0)));
+						baseInfo.add(String.valueOf("et: "+Math.round(t.getFinishTimeList().get(i)/100.0)));
 					});
 					pw.println(String.join(separator ,baseInfo.stream().toArray(String[]::new)));
 				});
@@ -196,7 +196,7 @@ public class ExistingModel_Simulator {
 		}
 	}
 	
-	public void saveResultAsLog(String outputDirName, String resultFileName){
+	public void saveResultAsLog(String outputDirName, String resultFileName, String no){
 		try {
 			FileWriter fw = new FileWriter(new File(outputDirName, resultFileName),true);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -210,7 +210,7 @@ public class ExistingModel_Simulator {
 						String et = Integer.toString(t.getFinishTimeList().get(i)/10);
 						Double rc = t.getResourceCapacityLog().get(i);
 						String rw = t.getReworkFromLog().get(i);
-						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,"+rw;
+						String log = no+"_"+Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,"+rw;
 						try {
 							bw.write(log);
 							bw.newLine();

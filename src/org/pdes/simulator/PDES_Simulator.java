@@ -208,7 +208,7 @@ public class PDES_Simulator{
 	public void saveResultFilesInDirectory(String outputDir, String no){
 		String fileName = this.getResultFileName(no);//the list of file name
 		this.saveResultFileByCsv(outputDir, fileName+".csv");//1. Gantt chart data by csv format.
-		this.saveResultAsLog(outputDir, "log.txt"); //2. Event log by txt. 
+		this.saveResultAsLog(outputDir, "log.txt",no); //2. Event log by txt. 
 	}
 	
 	private String getResultFileName(String no){
@@ -233,7 +233,7 @@ public class PDES_Simulator{
 			// workflow
 			pw.println();
 			pw.println("Gantt chart of each Task");
-			pw.println(String.join(separator , new String[]{"Workflow", "Task", "Resource Name", "Ready Time", "Start Time", "Finish Time","Ready Time", "Start Time", "Finish Time", "Ready Time","Start Time", "Finish Time"}));
+			pw.println(String.join(separator , new String[]{"Workflow", "Task", "Resource Name", "Start Time", "Finish Time", "Start Time", "Finish Time","Start Time", "Finish Time"}));
 			this.workflowList.forEach(w -> {
 				String workflowName = "workflow ID:"+w.getId();
 				w.getTaskList().forEach(t ->{
@@ -242,7 +242,7 @@ public class PDES_Simulator{
 					baseInfo.add(t.getName());
 					baseInfo.add(t.getAllocatedResourceList().stream().map(Resource::getName).collect(Collectors.joining("+")));
 					IntStream.range(0, t.getFinishTimeList().size()).forEach(i -> {
-						baseInfo.add(String.valueOf(t.getReadyTimeList().get(i)));
+//						baseInfo.add(String.valueOf(t.getReadyTimeList().get(i)));
 						baseInfo.add(String.valueOf(t.getStartTimeList().get(i)+1));
 						baseInfo.add(String.valueOf(t.getFinishTimeList().get(i)+1));
 					});
@@ -271,7 +271,7 @@ public class PDES_Simulator{
 		}
 	}
 	
-	public void saveResultAsLog(String outputDirName, String resultFileName){
+	public void saveResultAsLog(String outputDirName, String resultFileName, String no){
 		try {
 			FileWriter fw = new FileWriter(new File(outputDirName, resultFileName),true);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -284,7 +284,7 @@ public class PDES_Simulator{
 						String st = Integer.toString(t.getStartTimeList().get(i)+1);
 						String et = Integer.toString(t.getFinishTimeList().get(i)+1);
 						Double rc = t.getResourceCapacityLog().get(i);
-						String log = Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
+						String log = no+"_"+Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,None";
 						try {
 							bw.write(log);
 							bw.newLine();
