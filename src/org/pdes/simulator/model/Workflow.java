@@ -193,8 +193,8 @@ public class Workflow{
 		taskList.forEach(t -> t.checkFinished(time,allTask));
 	}
 	
-	public void perform(int time, List<Task> allTask) {
-		taskList.forEach(t -> t.perform(time, allTask));
+	public void perform(int time, List<Task> allTask,int no) {
+		taskList.forEach(t -> t.perform(time, allTask,no));
 	}
 	
 	public List<Task> getTaskList(){

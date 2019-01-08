@@ -33,7 +33,7 @@ public class PDES_Simulator{
 		this.resourceList=project.getResourceList_child();
 	}
 	
-	public void execute() {
+	public void execute(int no) {
 		this.initialize();
 		while(true){
 			
@@ -54,7 +54,7 @@ public class PDES_Simulator{
 			this.allocateReadyTasksToFreeResourcesForSimuation(readyAndWorkingTaskList, freeResourceList);
 			
 			//4. Perform WORKING tasks and update the status of each task.
-			this.performAndUpdateAllWorkflow(time);
+			this.performAndUpdateAllWorkflow(time, no);
 			time++;
 		}
 	}
@@ -197,9 +197,9 @@ public class PDES_Simulator{
 	 * @param time 
 	 * @param componentErrorRework 
 	 */
-	public void performAndUpdateAllWorkflow(int time){
+	public void performAndUpdateAllWorkflow(int time, int no){
 		workflowList.forEach(w -> w.checkWorking(time));//READY -> WORKING
-		workflowList.forEach(w -> w.perform(time, w.getTaskList()));//update information of WORKING task in each workflow
+		workflowList.forEach(w -> w.perform(time, w.getTaskList(),no));//update information of WORKING task in each workflow
 		workflowList.forEach(w -> w.checkFinished(time, w.getTaskList()));// WORKING -> WORKING_ADDITIONALLY or FINISHED
 		workflowList.forEach(w -> w.checkReady(time));// NONE -> READY
 		workflowList.forEach(w -> w.updatePERTData(time));//Update PERT information

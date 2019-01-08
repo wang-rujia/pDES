@@ -89,6 +89,9 @@ public class Task {
 	private List<Resource> allocatedResourceList = new ArrayList<Resource>();
 	private List<Double> resourceCapacityLog = new ArrayList<Double>();
 	
+	private boolean[][] ifReworked = new boolean[100][100];
+	//[occurrenceNumber(1,2,...,10)][progress*10(0,1,2,...,29)]
+	
 	public Task(TaskNode taskNode) {
 		this.id = UUID.randomUUID().toString();
 		this.nodeId = taskNode.getId();
@@ -99,6 +102,11 @@ public class Task {
 	}
 	
 	public void initialize() {
+		for(int i=0;i<100;i++){
+			for(int j=0;j<100;j++){
+				ifReworked[i][j] = false;
+			}
+		}
 		o=1;
 		est = 0;
 		eft = 0;
@@ -303,7 +311,6 @@ public class Task {
 										}
 									}
 									delta = FromTask2.remainingWorkAmount-delta;
-									if(delta>0.0001) System.out.println("  "+simNo+"[F]Rework From ["+FromTask.name+"]to["+From2+"], add duration: "+delta);
 									FromTask2.actualWorkAmount=FromTask2.defaultWorkAmount-FromTask2.remainingWorkAmount;
 								}
 							}
@@ -365,7 +372,7 @@ public class Task {
 	 * @param time
 	 * @param componentErrorRework
 	 */
-	public void perform(int time, List<Task> allTask) {
+	public void perform(int time, List<Task> allTask, int no) {
 		if (isWorking() || isWorkingAdditionally()) {
 			double workAmount = 0;
 			List<Resource> aRLwithoutD=allocatedResourceList.stream()
@@ -386,7 +393,7 @@ public class Task {
 					if(minimumWorkAmount.size()>=j){
 						if(minimumWorkAmount.get(j)>0){
 //							System.out.println("cannot find correct minimum work amount:"+this.o+", using mwa("+j+")");
-							progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(j)*10)/10;
+							progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(j)*10.0)/10.0;
 							break;
 						}else{
 							progress = -1.0;
@@ -395,26 +402,27 @@ public class Task {
 				}
 			}
 
-	//		if(progress>=0){
-				Random rand = new Random();
-				Double p = rand.nextDouble();
+			Random rand = new Random();
+			Double p = rand.nextDouble();
+			int progress10 = (int)(progress*10);
+			if(!ifReworked[this.o-1][progress10]){
+				ifReworked[this.o-1][progress10] = true;
+//				System.out.println(String.valueOf(no)+"[reworking]"+this.name+" oc:"+this.o+" progress:"+progress10);
 				if(progress<0) System.out.println(rework.getReworkMap(o, progress));
 				Map<Double, String> reworkMap = rework.getReworkMap(o, progress);
 				for(Double pSum : reworkMap.keySet()){
-					if(p<pSum){
+					if(p<pSum){		
 						String FromName = reworkMap.get(pSum);
-						//Task From = searchTaskByName(FromName);
 						Task From = null;
-						for(Task s : allTask){
-							if(s.getName().equals(FromName)) From=s;
-						}
-						if(!From.equals(null)) {
+						for(Task s : allTask) if(s.getName().equals(FromName)) From=s;
+						if(!From.equals(null) && From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
+								&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0) {
 							From.setInitByRework(From.getOccurrenceTime(),time);
 						}
-					break;
+						break;
 					}
 				}
-	//		}
+			}
 		}
 	}
 	
@@ -451,7 +459,7 @@ public class Task {
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
 						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
-						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
+//						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						progress = actualWorkAmount/minimumWorkAmount.get(j);
 						break;
 					}
@@ -487,7 +495,7 @@ public class Task {
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.size()>=j){
 						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
-						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
+						//System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						break;
 					}
 				}
@@ -765,17 +773,18 @@ public class Task {
 	}
 	
 	public double calPercent(){
-		if(minimumWorkAmount.size()>1){
-			int i=2;
-			double perSum=0.0;
-			while(minimumWorkAmount.containsKey(i)){
-				perSum += (double)(minimumWorkAmount.get(i)/minimumWorkAmount.get(i-1));
-				i++;
-			}
-			return (double)(perSum/(i-1));
-		}else{
-			return 0.0;
-		}
+		return 0.0;
+//		if(minimumWorkAmount.size()>1){
+//			int i=2;
+//			double perSum=0.0;
+//			while(minimumWorkAmount.containsKey(i)){
+//				perSum += (double)(minimumWorkAmount.get(i)/minimumWorkAmount.get(i-1));
+//				i++;
+//			}
+//			return (double)(perSum/(i-1));
+//		}else{
+//			return 1.0;
+//		}
 	}
 
 }

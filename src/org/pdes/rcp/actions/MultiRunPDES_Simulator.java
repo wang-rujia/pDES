@@ -72,7 +72,7 @@ public class MultiRunPDES_Simulator extends AbstractSimulationAction {
 		public String call() throws Exception {
 			ProjectInfo project = new ProjectInfo(diagram, numOfWorkflow);
 			PDES_Simulator sim = new PDES_Simulator(project);
-			sim.execute();
+			sim.execute(no);
 			sim.saveResultFilesInDirectory(outputDirectoryPath, String.valueOf(no));
 			return String.format("%d,%f,%d,%f", no, project.getTotalCost(), project.getDuration(),project.getTotalActualWorkAmount());
 		}
