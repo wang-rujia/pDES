@@ -175,31 +175,31 @@ public class Task {
 		
 		if (remainingWorkAmount <= 0) {
 			if (isWorkingAdditionally()) {
-				boolean ifRework=false;
-				Random rand = new Random();
-				Double p = rand.nextDouble();
-				Map<Double, String> reworkMap = rework.getReworkMap(o,-1.0);
-				for(Double pSum : reworkMap.keySet()){
-					if(p<pSum){
-						String FromName = reworkMap.get(pSum);
-						//Task From = searchTaskByName(FromName);
-						Task From = null;
-						for(Task s : allTask){
-							if(s.getName().equals(FromName)) From=s;
-						}
-						if(!From.equals(null)) {
-							ifRework=true;
-							From.setInitByRework(From.getOccurrenceTime(),time);
-						}
-					break;
-					}
-				}
-				if(!ifRework){
+//				boolean ifRework=false;
+//				Random rand = new Random();
+//				Double p = rand.nextDouble();
+//				Map<Double, String> reworkMap = rework.getReworkMap(o,-1.0);
+//				for(Double pSum : reworkMap.keySet()){
+//					if(p<pSum){
+//						String FromName = reworkMap.get(pSum);
+//						//Task From = searchTaskByName(FromName);
+//						Task From = null;
+//						for(Task s : allTask){
+//							if(s.getName().equals(FromName)) From=s;
+//						}
+//						if(!From.equals(null)) {
+//							ifRework=true;
+//							From.setInitByRework(From.getOccurrenceTime(),time);
+//						}
+//					break;
+//					}
+//				}
+//				if(!ifRework){
 					addFinishTime(time);
 					remainingWorkAmount = 0;
 					state = TaskState.FINISHED;
 					stateInt = 4;
-				}
+//				}
 				
 				List<Resource> aRLwithoutD=allocatedResourceList.stream()
 						.distinct()
@@ -382,44 +382,64 @@ public class Task {
 
 			actualWorkAmount +=workAmount;
 			remainingWorkAmount -= workAmount;
-			if(minimumWorkAmount.size()>=o){
+			if(minimumWorkAmount.containsKey(o)){
 				if(minimumWorkAmount.get(this.o)>0){
 					progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(this.o)*10)/10;
 				}else{
 					progress = -1.0;
 				}
 			}else{
-				for(int j=o-1;j>0;j--){
-					if(minimumWorkAmount.size()>=j){
-						if(minimumWorkAmount.get(j)>0){
+//				for(int j=o-1;j>0;j--){
+//					if(minimumWorkAmount.size()>=j){
+//						if(minimumWorkAmount.get(j)>0){
 //							System.out.println("cannot find correct minimum work amount:"+this.o+", using mwa("+j+")");
-							progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(j)*10.0)/10.0;
-							break;
-						}else{
+//							progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(j)*10.0)/10.0;
+//							break;
+//						}else{
 							progress = -1.0;
-						}
-					}
-				}
+//						}
+//					}
+//				}
 			}
 
 			Random rand = new Random();
 			Double p = rand.nextDouble();
-			int progress10 = (int)(progress*10);
-			if(!ifReworked[this.o-1][progress10]){
-				ifReworked[this.o-1][progress10] = true;
-//				System.out.println(String.valueOf(no)+"[reworking]"+this.name+" oc:"+this.o+" progress:"+progress10);
-				if(progress<0) System.out.println(rework.getReworkMap(o, progress));
+			if(progress < 0){
 				Map<Double, String> reworkMap = rework.getReworkMap(o, progress);
 				for(Double pSum : reworkMap.keySet()){
 					if(p<pSum){		
 						String FromName = reworkMap.get(pSum);
 						Task From = null;
 						for(Task s : allTask) if(s.getName().equals(FromName)) From=s;
-						if(!From.equals(null) && From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
-								&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0) {
+						if(!From.equals(null) 
+								&& From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
+								&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0
+								){
 							From.setInitByRework(From.getOccurrenceTime(),time);
 						}
 						break;
+					}
+				}
+			}else{
+				int progress10 = (int)(progress*10.0);
+				if(progress10>0 && !ifReworked[this.o-1][progress10]){
+					ifReworked[this.o-1][progress10] = true;
+//					System.out.println(String.valueOf(no)+"[reworking]"+this.name+" oc:"+this.o+" progress:"+progress10);
+//					if(progress<0) System.out.println(rework.getReworkMap(o, progress));
+					Map<Double, String> reworkMap = rework.getReworkMap(o, progress);
+					for(Double pSum : reworkMap.keySet()){
+						if(p<pSum){		
+							String FromName = reworkMap.get(pSum);
+							Task From = null;
+							for(Task s : allTask) if(s.getName().equals(FromName)) From=s;
+							if(!From.equals(null) 
+									&& From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
+									&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0
+									){
+								From.setInitByRework(From.getOccurrenceTime(),time);
+							}
+							break;
+						}
 					}
 				}
 			}
@@ -452,19 +472,20 @@ public class Task {
 			lft = 0;
 			progress=0.0;
 			
-			if(minimumWorkAmount.size()>=oc+1){
+			if(minimumWorkAmount.containsKey(oc+1)){
 				remainingWorkAmount = minimumWorkAmount.get(oc+1);
 				progress = actualWorkAmount/minimumWorkAmount.get(oc+1);
 			}else{
 				for(int j=oc;j>0;j--){
-					if(minimumWorkAmount.size()>=j){
+					if(minimumWorkAmount.containsKey(j)){
 						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
 //						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
-						progress = actualWorkAmount/minimumWorkAmount.get(j);
+						progress = actualWorkAmount/remainingWorkAmount;
 						break;
 					}
 				}
 			}
+			
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
 			stateInt = 0;
@@ -489,11 +510,11 @@ public class Task {
 			lft = 0;
 			progress=0.0;
 			
-			if(minimumWorkAmount.size()>=oc+1){
+			if(minimumWorkAmount.containsKey(oc+1)){
 				remainingWorkAmount = minimumWorkAmount.get(oc+1);
 			}else{
 				for(int j=oc;j>0;j--){
-					if(minimumWorkAmount.size()>=j){
+					if(minimumWorkAmount.containsKey(j)){
 						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
 						//System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						break;
@@ -783,7 +804,7 @@ public class Task {
 //			}
 //			return (double)(perSum/(i-1));
 //		}else{
-//			return 1.0;
+//			return 0.0;
 //		}
 	}
 
