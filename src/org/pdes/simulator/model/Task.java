@@ -215,16 +215,17 @@ public class Task {
 			} else if (isWorking()) {
 				Random rand = new Random();
 				Double p = rand.nextDouble();
-				Map<Double, Integer> DelayMap = delay.getDelayMap(this.o);
+				List<Double> key = delay.getDpAtO(this.o);
+				List<Integer> value = delay.getDwaAtO(this.o);
 				Double pSum = 0.0;
 				boolean ifDelay = false;
-				for(Double key: DelayMap.keySet()){
-					pSum += key;
+				for(int i=0;i<key.size();i++){
+					pSum += key.get(i);
 					if(p<pSum){
 						state = TaskState.WORKING_ADDITIONALLY;
 						stateInt = 5;
-						if(DelayMap.get(key)==0) break;
-						remainingWorkAmount += DelayMap.get(key);
+						if(value.get(i)==0) break;
+						remainingWorkAmount += value.get(i);
 						ifDelay = true;
 						break;
 					}

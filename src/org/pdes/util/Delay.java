@@ -40,6 +40,7 @@ public class Delay {
 		}
 	}
 	
+	/*
 	public Map<Double,Integer> getDelayMap(int oc){
 		Map<Double, Integer> m = new LinkedHashMap<Double, Integer>();
 		for(int i=0; i<o.size();i++){
@@ -54,6 +55,23 @@ public class Delay {
 			m.put(entry.getKey(), entry.getValue());
 		}
 		return m;
+	}
+	*/
+	
+	public List<Double> getDpAtO(int oc){
+		List<Double> a = new ArrayList<Double>();
+		for(int i=0;i<possibility.size();i++){
+			if(this.o.get(i)==oc) a.add(possibility.get(i));
+		}
+		return a;
+	}
+	
+	public List<Integer> getDwaAtO(int oc){
+		List<Integer> a = new ArrayList<Integer>();
+		for(int i=0;i<possibility.size();i++){
+			if(this.o.get(i)==oc) a.add(awa.get(i));
+		}
+		return a;
 	}
 	
 	public String getInfoByIndex(int i){
