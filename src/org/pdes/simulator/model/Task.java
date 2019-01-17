@@ -217,6 +217,9 @@ public class Task {
 				Double p = rand.nextDouble();
 				List<Double> key = delay.getDpAtO(this.o);
 				List<Integer> value = delay.getDwaAtO(this.o);
+				if(this.o==2 && this.name.equals("C") && this.remainingWorkAmount>2){
+					System.out.println("debug");
+				}
 				Double pSum = 0.0;
 				boolean ifDelay = false;
 				for(int i=0;i<key.size();i++){

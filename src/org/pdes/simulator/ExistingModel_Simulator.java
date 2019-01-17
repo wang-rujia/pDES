@@ -96,7 +96,22 @@ public class ExistingModel_Simulator {
 					t.addReworkFromLog(t.getReworkFrom());
 				}
 				if(t.getStartTimeAdded()){
-					t.addResourceCapacityLog(1);
+					int rc=0;
+					if(t.getName().equals("A")) rc=15;
+					if(t.getName().equals("B")) rc=2;
+					if(t.getName().equals("C")) rc=2;
+					if(t.getName().equals("D")) rc=1;
+					if(t.getName().equals("E")) rc=12;
+					if(t.getName().equals("F")) rc=2;
+					if(t.getName().equals("G")) rc=4;
+					if(t.getName().equals("H")) rc=2;
+					if(t.getName().equals("I")) rc=2;
+					if(t.getName().equals("J")) rc=3;
+					if(t.getName().equals("K")) rc=2;
+					if(t.getName().equals("L")) rc=4;
+					if(t.getName().equals("M")) rc=13;
+					if(t.getName().equals("N")) rc=10;
+					t.addResourceCapacityLog(rc);
 					t.setStartTimeAddedFalse();
 					t.setReworkFrom("none");
 					t.addFinishTime(time);
@@ -105,9 +120,24 @@ public class ExistingModel_Simulator {
 			for(Task t: workingTaskList){
 				if(t.getRemainingWorkAmount()>0 && !t.checkInputForExistingModel()){
 					if(t.getStartTimeAdded()) {
+						int rc=0;
+						if(t.getName().equals("A")) rc=15;
+						if(t.getName().equals("B")) rc=2;
+						if(t.getName().equals("C")) rc=2;
+						if(t.getName().equals("D")) rc=1;
+						if(t.getName().equals("E")) rc=12;
+						if(t.getName().equals("F")) rc=2;
+						if(t.getName().equals("G")) rc=4;
+						if(t.getName().equals("H")) rc=2;
+						if(t.getName().equals("I")) rc=2;
+						if(t.getName().equals("J")) rc=3;
+						if(t.getName().equals("K")) rc=2;
+						if(t.getName().equals("L")) rc=4;
+						if(t.getName().equals("M")) rc=13;
+						if(t.getName().equals("N")) rc=10;
 						t.addReworkFromLog("Stop");
 						t.addFinishTime(time);
-						t.addResourceCapacityLog(1);
+						t.addResourceCapacityLog(rc);
 						t.setStartTimeAddedFalse();
 					}
 				}
@@ -149,7 +179,8 @@ public class ExistingModel_Simulator {
 	public void saveResultFilesInDirectory(String outputDir, String no){
 		String fileName = this.getResultFileName(no);//the list of file name
 		this.saveResultFileByCsv(outputDir, fileName+".csv");//1. Gantt chart data by csv format.
-		this.saveResultAsLog(outputDir, "log.txt",no); //2. Event log by txt. 
+		this.saveResultAsLog(outputDir, "log.txt",no); //2. Event log by txt.
+		this.saveResult(outputDir, "logForCheck.txt",no);
 	}
 	
 	private String getResultFileName(String no){
@@ -169,7 +200,7 @@ public class ExistingModel_Simulator {
 			PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(os)));
 			
 			// header
-			pw.println(String.join(separator, new String[]{"Duration", String.valueOf(project.getDuration()+1), "Total Work Amount", String.valueOf(project.getTotalActualWorkAmount())}));
+			pw.println(String.join(separator, new String[]{"Duration", String.valueOf(project.getDuration()), "Total Work Amount", String.valueOf(project.getTotalActualWorkAmount())}));
 			
 			// workflow
 			pw.println();
@@ -182,8 +213,10 @@ public class ExistingModel_Simulator {
 					baseInfo.add(workflowName);
 					baseInfo.add(t.getName());
 					IntStream.range(0, t.getFinishTimeList().size()).forEach(i -> {
-						baseInfo.add(String.valueOf("st: "+Math.round(t.getStartTimeList().get(i)/100.0)));
-						baseInfo.add(String.valueOf("et: "+Math.round(t.getFinishTimeList().get(i)/100.0)));
+//						baseInfo.add(String.valueOf("st: "+Math.round(t.getStartTimeList().get(i)/100.0)));
+//						baseInfo.add(String.valueOf("et: "+Math.round(t.getFinishTimeList().get(i)/100.0)));
+						baseInfo.add(String.valueOf("st: "+t.getStartTimeList().get(i)));
+						baseInfo.add(String.valueOf("et: "+String.valueOf(t.getFinishTimeList().get(i))));
 					});
 					pw.println(String.join(separator ,baseInfo.stream().toArray(String[]::new)));
 				});
@@ -206,8 +239,10 @@ public class ExistingModel_Simulator {
 					String taskName = t.getName();
 					for(int i =0;i<t.getFinishTimeList().size();i++){
 						count++;
-						String st = Long.toString(Math.round(t.getStartTimeList().get(i)/10.0));
-						String et = Long.toString(Math.round(t.getFinishTimeList().get(i)/10.0));
+//						String st = Long.toString(Math.round(t.getStartTimeList().get(i)/10.0));
+//						String et = Long.toString(Math.round(t.getFinishTimeList().get(i)/10.0));
+						String st = Long.toString(t.getStartTimeList().get(i));
+						String et = Long.toString(t.getFinishTimeList().get(i));
 						Double rc = t.getResourceCapacityLog().get(i);
 						String rw = t.getReworkFromLog().get(i);
 						String log = no+"_"+Integer.toString(count)+projectName+ ","+projectName+","+taskName+","+st+","+et+",rn,"+Double.toString(rc)+",null,"+rw;
@@ -227,4 +262,34 @@ public class ExistingModel_Simulator {
 			e.printStackTrace();
 		}
 	}
+	
+	public void saveResult(String outputDirName, String resultFileName, String no){
+		try {
+			FileWriter fw = new FileWriter(new File(outputDirName, resultFileName),true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			this.workflowList.forEach(w -> {
+				w.getTaskList().forEach(t ->{
+					String taskName = t.getName();
+					for(int i =0;i<t.getFinishTimeList().size();i++){
+						count++;
+						String st = Long.toString(t.getStartTimeList().get(i));
+						String et = Long.toString(t.getFinishTimeList().get(i));
+						String log = no+"_"+Integer.toString(count)+","+taskName+","+st+","+et;
+						try {
+							bw.write(log);
+							bw.newLine();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				});
+			});
+			bw.close();
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
