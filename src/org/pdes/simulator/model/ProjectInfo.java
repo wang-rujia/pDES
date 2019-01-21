@@ -93,5 +93,15 @@ public class ProjectInfo extends BaseProjectInfo {
 				.max()
 				.orElse(0);
 	}
+	
+	public double getCost(){
+		double sum=0;
+		for(Resource r: resourceList){
+			for(int i=0; i < r.getFinishTimeList().size();i++){
+				sum += (r.getFinishTimeList().get(i)-r.getStartTimeList().get(i)+1)*r.getCostPerTime();
+			}
+		}
+		return sum;
+	}
 
 }

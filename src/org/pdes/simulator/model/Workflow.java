@@ -212,7 +212,7 @@ public class Workflow{
 						.orElse(0))
 				.max()
 				.orElse(0);
-		return a+1;
+		return a;
 	}
 	
 	public double getTotalWorkAmount() {

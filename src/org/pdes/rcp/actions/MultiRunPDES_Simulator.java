@@ -74,7 +74,7 @@ public class MultiRunPDES_Simulator extends AbstractSimulationAction {
 			PDES_Simulator sim = new PDES_Simulator(project);
 			sim.execute(no);
 			sim.saveResultFilesInDirectory(outputDirectoryPath, String.valueOf(no));
-			return String.format("%d,%f,%d,%f", no, project.getTotalCost(), project.getDuration(),project.getTotalActualWorkAmount());
+			return String.format("%d,%f,%d,%f", no, project.getTotalCost(), project.getDuration(),project.getCost());
 		}
 	}
 	
