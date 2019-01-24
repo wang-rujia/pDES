@@ -88,6 +88,7 @@ public class Task {
 	private List<Integer> finishTimeList = new ArrayList<Integer>(); // list of finish time of one task
 	private List<Resource> allocatedResourceList = new ArrayList<Resource>();
 	private List<Double> resourceCapacityLog = new ArrayList<Double>();
+	private double pastWorkAmount=0.0;
 	
 	private boolean[][] ifReworked = new boolean[100][100];
 	//[occurrenceNumber(1,2,...,10)][progress*10(0,1,2,...,29)]
@@ -117,6 +118,7 @@ public class Task {
 		actualWorkAmount = 0;
 		state = TaskState.NONE;
 		stateInt = 0;
+		pastWorkAmount=0.0;
 	}
 	
 	public void initializeForExistingModel(int simNo, Random rand) {
@@ -386,6 +388,7 @@ public class Task {
 
 			actualWorkAmount +=workAmount;
 			remainingWorkAmount -= workAmount;
+			pastWorkAmount += workAmount;
 			if(minimumWorkAmount.containsKey(o)){
 				if(minimumWorkAmount.get(this.o)>0){
 					progress = Math.floor(actualWorkAmount/minimumWorkAmount.get(this.o)*10)/10;
@@ -469,26 +472,32 @@ public class Task {
 	public void setInitByRework(int oc, int time){
 		if(isWorking()||isWorkingAdditionally()){
 			this.addFinishTime(time);
-			this.setOccurrenceTime(oc+1);
+//			this.setOccurrenceTime(oc+1);
+			this.setOccurrenceTime(oc);
 			est = 0;
 			eft = 0;
 			lst = 0;
 			lft = 0;
 			progress=0.0;
-			
-			if(minimumWorkAmount.containsKey(oc+1)){
-				remainingWorkAmount = minimumWorkAmount.get(oc+1);
-				progress = actualWorkAmount/minimumWorkAmount.get(oc+1);
+			if(minimumWorkAmount.containsKey(oc)) {
+				remainingWorkAmount = minimumWorkAmount.get(oc);
 			}else{
-				for(int j=oc;j>0;j--){
-					if(minimumWorkAmount.containsKey(j)){
-						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
-//						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
-						progress = actualWorkAmount/remainingWorkAmount;
-						break;
-					}
-				}
+				remainingWorkAmount=0;
 			}
+			
+//			if(minimumWorkAmount.containsKey(oc+1)){
+//				remainingWorkAmount = minimumWorkAmount.get(oc+1);
+//				progress = actualWorkAmount/minimumWorkAmount.get(oc+1);
+//			}else{
+//				for(int j=oc;j>0;j--){
+//					if(minimumWorkAmount.containsKey(j)){
+//						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
+//						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
+//						progress = actualWorkAmount/remainingWorkAmount;
+//						break;
+//					}
+//				}
+//			}
 			
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
@@ -795,6 +804,13 @@ public class Task {
 	public void addReworkFrom(String a){
 		String b = this.reworkFrom;
 		this.reworkFrom = b+";"+a;
+	}
+	
+	public void adjustByTotalWorkAmount(){
+		double a = this.minimumWorkAmount.get(1);
+		if(this.pastWorkAmount + this.remainingWorkAmount < a){
+			this.remainingWorkAmount = a - this.pastWorkAmount;
+		}
 	}
 	
 	public double calPercent(){
