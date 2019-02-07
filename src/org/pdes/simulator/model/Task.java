@@ -217,9 +217,9 @@ public class Task {
 				Double p = rand.nextDouble();
 				List<Double> key = delay.getDpAtO(this.o);
 				List<Integer> value = delay.getDwaAtO(this.o);
-				if(this.o==2 && this.name.equals("C") && this.remainingWorkAmount>2){
-					System.out.println("debug");
-				}
+//				if(this.o==2 && this.name.equals("C") && this.remainingWorkAmount>2){
+//					System.out.println("debug");
+//				}
 				Double pSum = 0.0;
 				boolean ifDelay = false;
 				for(int i=0;i<key.size();i++){
@@ -384,7 +384,7 @@ public class Task {
 					.collect(Collectors.toList());
 			for(Resource a : aRLwithoutD) workAmount += a.getWorkAmountSkillPoint(this);
 
-			actualWorkAmount +=workAmount;
+			actualWorkAmount += workAmount;
 			remainingWorkAmount -= workAmount;
 			if(minimumWorkAmount.containsKey(o)){
 				if(minimumWorkAmount.get(this.o)>0){
@@ -419,7 +419,7 @@ public class Task {
 								&& From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
 								&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0
 								){
-							From.setInitByRework(From.getOccurrenceTime(),time);
+							From.setInitByRework(From.getOccurrenceTime(),time,this);
 						}
 						break;
 					}
@@ -440,7 +440,7 @@ public class Task {
 									&& From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
 									&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0
 									){
-								From.setInitByRework(From.getOccurrenceTime(),time);
+								From.setInitByRework(From.getOccurrenceTime(),time,this);
 							}
 							break;
 						}
@@ -466,15 +466,14 @@ public class Task {
 		return null;
 	}
 	
-	public void setInitByRework(int oc, int time){
-		if(isWorking()||isWorkingAdditionally()){
+	public void setInitByRework(int oc, int time,Task ongoingTask){ //ongoingTask: update by o+1
+		if(this.equals(ongoingTask) && (this.isWorking()||this.isWorkingAdditionally())){
 			this.addFinishTime(time);
 			this.setOccurrenceTime(oc+1);
 			est = 0;
 			eft = 0;
 			lst = 0;
 			lft = 0;
-			progress=0.0;
 			
 			if(minimumWorkAmount.containsKey(oc+1)){
 				remainingWorkAmount = minimumWorkAmount.get(oc+1);
@@ -483,7 +482,6 @@ public class Task {
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.containsKey(j)){
 						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
-//						System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						progress = actualWorkAmount/remainingWorkAmount;
 						break;
 					}
@@ -491,6 +489,45 @@ public class Task {
 			}
 			
 			actualWorkAmount = 0;
+			state = TaskState.NONE;
+			stateInt = 0;
+			
+			double rc = 0;
+			List<Resource> aRLwithoutD=allocatedResourceList.stream()
+					.distinct()
+					.collect(Collectors.toList());
+			for(Resource a : aRLwithoutD){
+				a.setStateFree();
+				a.addFinishTime(time);
+				rc += a.getWorkAmountSkillPoint(this);
+				allocatedResourceList.remove(a);
+			}
+			this.addResourceCapacityLog(rc);
+			
+		}else if(this.equals(ongoingTask) && this.isFinished()){
+			
+			est = 0;
+			eft = 0;
+			lst = 0;
+			lft = 0;
+			progress=0.0;
+			remainingWorkAmount += actualWorkAmount;
+			actualWorkAmount = 0;
+			state = TaskState.NONE;
+			stateInt = 0;
+			
+		}else if(this.isWorking()||this.isWorkingAdditionally()){
+			
+			this.addFinishTime(time);
+			est = 0;
+			eft = 0;
+			lst = 0;
+			lft = 0;
+			
+			remainingWorkAmount += actualWorkAmount;
+			actualWorkAmount = 0;
+			progress=0.0;
+			
 			state = TaskState.NONE;
 			stateInt = 0;
 			
@@ -520,7 +557,6 @@ public class Task {
 				for(int j=oc;j>0;j--){
 					if(minimumWorkAmount.containsKey(j)){
 						remainingWorkAmount = minimumWorkAmount.get(j)*calPercent();
-						//System.out.println(this.getName()+",cannot find correct minimum work amount:"+(oc+1)+", using:"+minimumWorkAmount.get(j)+"*"+calPercent()+"="+remainingWorkAmount);
 						break;
 					}
 				}
@@ -529,8 +565,9 @@ public class Task {
 			actualWorkAmount = 0;
 			state = TaskState.NONE;
 			stateInt = 0;
+			
 			for(Task t : this.outputTaskList) {
-				t.setInitByRework(t.getOccurrenceTime(),time);
+				t.setInitByRework(t.getOccurrenceTime(),time,ongoingTask);
 			}
 		}
 	}
@@ -796,6 +833,17 @@ public class Task {
 		String b = this.reworkFrom;
 		this.reworkFrom = b+";"+a;
 	}
+	
+	public double getLeastWorkAmount(){
+		double a = 0;
+		for(Integer i : this.minimumWorkAmount.keySet()){
+			if(this.minimumWorkAmount.get(i) > a){
+				a = this.minimumWorkAmount.get(i);
+			}
+		}
+		return a;
+	}
+	
 	
 	public double calPercent(){
 		return 0.0;
