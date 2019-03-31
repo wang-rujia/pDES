@@ -416,8 +416,8 @@ public class Task {
 						Task From = null;
 						for(Task s : allTask) if(s.getName().equals(FromName)) From=s;
 						if(!From.equals(null) 
-								&& From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
-								&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0
+//								&& From.minimumWorkAmount.containsKey(From.getOccurrenceTime()+1)
+//								&& From.minimumWorkAmount.get(From.getOccurrenceTime()+1)>0
 								){
 							From.setInitByRework(From.getOccurrenceTime(),time,this);
 						}
